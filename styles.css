@@ -1062,6 +1062,159 @@ select.input { -webkit-appearance: none; appearance: none; background-image: url
 }
 
 /* ── Responsive: Mobile ── */
+/* ────────────────────────────────────────────────────────────
+   HELP TAB
+   ──────────────────────────────────────────────────────────── */
+
+.help-card { margin-bottom: 16px; }
+.help-card .card-title { margin-bottom: 18px; }
+
+/* ── Quick Start steps ── */
+.help-steps { display: flex; flex-direction: column; gap: 16px; }
+.help-step {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.help-step-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 800;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.help-step-body { flex: 1; padding-top: 4px; }
+.help-step-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+.help-step p { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+/* ── Storage cards ── */
+.help-storage-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.help-storage-card {
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.help-storage-warn { background: var(--warning-light); border-color: #fde68a; }
+.help-storage-ok   { background: var(--success-light); border-color: #a7f3d0; }
+.help-storage-info { background: var(--primary-light); border-color: #c7d2fe; }
+.help-storage-icon { font-size: 22px; }
+.help-storage-label { font-size: 13px; font-weight: 700; color: var(--text); }
+.help-storage-desc { font-size: 12px; color: var(--text-muted); line-height: 1.55; }
+.help-storage-desc code { background: rgba(0,0,0,.07); padding: 1px 4px; border-radius: 3px; font-size: 11px; }
+
+/* ── Tip boxes ── */
+.help-tip {
+  padding: 10px 14px;
+  background: var(--primary-light);
+  border-radius: var(--radius-xs);
+  border-left: 4px solid var(--primary);
+  font-size: 13px;
+  color: var(--primary-dark);
+  line-height: 1.55;
+}
+.help-tip-warn {
+  background: var(--warning-light);
+  border-color: var(--warning);
+  color: #92400e;
+  margin-top: 14px;
+}
+
+/* ── Features list ── */
+.help-features { display: flex; flex-direction: column; gap: 14px; }
+.help-feature-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.help-feature-row:last-child { border-bottom: none; padding-bottom: 0; }
+.help-feature-icon { font-size: 22px; flex-shrink: 0; width: 32px; text-align: center; }
+.help-feature-row strong { font-size: 14px; display: block; margin-bottom: 3px; }
+.help-feature-row p { font-size: 13px; color: var(--text-muted); line-height: 1.6; margin: 0; }
+
+/* ── Device cards ── */
+.help-device-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 0;
+}
+.help-device-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+}
+.help-device-icon { font-size: 28px; margin-bottom: 8px; }
+.help-device-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; color: var(--text); }
+.help-device-steps { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.help-device-steps li { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+.help-device-steps li code { background: rgba(0,0,0,.07); padding: 1px 4px; border-radius: 3px; font-size: 11px; }
+.help-device-steps li strong { color: var(--text); }
+
+/* ── Tips grid ── */
+.help-tips-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.help-tip-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.help-tip-icon { font-size: 18px; flex-shrink: 0; }
+.help-tip-item strong { display: block; margin-bottom: 2px; }
+
+/* ── About section ── */
+.help-about {
+  text-align: center;
+  padding: 32px 24px;
+}
+.help-about-logo { font-size: 42px; margin-bottom: 8px; }
+.help-about-name { font-size: 22px; font-weight: 800; color: var(--primary); margin-bottom: 8px; }
+.help-about-desc { font-size: 14px; color: var(--text-muted); line-height: 1.7; margin-bottom: 16px; }
+.help-about-features { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.help-about-badge {
+  padding: 5px 14px;
+  background: var(--success-light);
+  color: #065f46;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid #a7f3d0;
+}
+
+/* ────────────────────────────────────────────────────────────
+   RESPONSIVE
+   ──────────────────────────────────────────────────────────── */
+
+@media (max-width: 900px) {
+  .help-storage-grid { grid-template-columns: 1fr; }
+  .help-device-grid  { grid-template-columns: 1fr; }
+  .help-tips-grid    { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 600px) {
   .app-main { padding: 16px 12px 80px; }
   .section-header { flex-direction: column; align-items: flex-start; gap: 10px; }

@@ -45,6 +45,10 @@
       <span class="tab-icon">⚖️</span>
       <span class="tab-label">Balances</span>
     </button>
+    <button class="nav-tab" data-tab="help">
+      <span class="tab-icon">ℹ️</span>
+      <span class="tab-label">Help</span>
+    </button>
   </nav>
 
   <!-- ===== MAIN CONTENT ===== -->
@@ -226,6 +230,246 @@
         <p class="card-subtitle">Minimum transactions to clear all debts</p>
         <div id="settlements-list"></div>
       </div>
+    </section>
+
+    <!-- ─── HELP TAB ─── -->
+    <section class="tab-content" id="tab-help">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Help &amp; Info</h2>
+          <p class="section-subtitle">Everything you need to know about SplitEase</p>
+        </div>
+      </div>
+
+      <!-- Quick Start -->
+      <div class="card help-card">
+        <h3 class="card-title">🚀 Quick Start — 4 Steps</h3>
+        <div class="help-steps">
+          <div class="help-step">
+            <div class="help-step-num">1</div>
+            <div class="help-step-body">
+              <div class="help-step-title">Add Members</div>
+              <p>Go to the <strong>👥 Members</strong> tab → click <strong>+ Add Member</strong>. Add every person who shares expenses (roommates, family, friends). Each member gets a color avatar.</p>
+            </div>
+          </div>
+          <div class="help-step">
+            <div class="help-step-num">2</div>
+            <div class="help-step-body">
+              <div class="help-step-title">Create Groups (optional but recommended)</div>
+              <p>Go to <strong>🏠 Groups</strong> tab → click <strong>+ Create Group</strong>. Name it (e.g. "Home Bills", "Road Trip") and tick only the members who belong to that group. Like Splitwise groups.</p>
+            </div>
+          </div>
+          <div class="help-step">
+            <div class="help-step-num">3</div>
+            <div class="help-step-body">
+              <div class="help-step-title">Add Expenses</div>
+              <p>Go to <strong>💸 Expenses</strong> tab → click <strong>+ Add Expense</strong>. Fill in title, amount, who paid, date, category, and which members split it. Attach a bill photo if you like.</p>
+            </div>
+          </div>
+          <div class="help-step">
+            <div class="help-step-num">4</div>
+            <div class="help-step-body">
+              <div class="help-step-title">Check Balances &amp; Settle Up</div>
+              <p>Go to <strong>⚖️ Balances</strong> tab. See who owes how much. The app calculates the minimum number of payments needed to settle all debts (e.g. instead of 6 transfers it might suggest 2).</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Storage -->
+      <div class="card help-card">
+        <h3 class="card-title">💾 Data Storage — How to Never Lose Your Data</h3>
+        <div class="help-storage-grid">
+          <div class="help-storage-card help-storage-warn">
+            <div class="help-storage-icon">🌐</div>
+            <div class="help-storage-label">Browser Storage (default)</div>
+            <div class="help-storage-desc">Data saved inside your browser. <strong>Lost</strong> if you clear browser cache, use incognito, or switch browsers.</div>
+          </div>
+          <div class="help-storage-card help-storage-ok">
+            <div class="help-storage-icon">📁</div>
+            <div class="help-storage-label">Local File (recommended)</div>
+            <div class="help-storage-desc">Click <strong>💾 Browser Only</strong> in the header → link a <code>.json</code> file on your laptop. Every change auto-saves. Works across browser clears.</div>
+          </div>
+          <div class="help-storage-card help-storage-info">
+            <div class="help-storage-icon">📤</div>
+            <div class="help-storage-label">Export / Import (manual backup)</div>
+            <div class="help-storage-desc">Use <strong>📤 Export</strong> to download a backup JSON file anytime. Use <strong>📥 Import</strong> to restore it. Good for transferring between devices.</div>
+          </div>
+        </div>
+        <div class="help-tip">
+          💡 <strong>Best practice:</strong> Link a local file AND do a monthly Export as an extra backup. Store the export in Google Drive or email it to yourself.
+        </div>
+      </div>
+
+      <!-- Features Guide -->
+      <div class="card help-card">
+        <h3 class="card-title">📖 Features Guide</h3>
+        <div class="help-features">
+
+          <div class="help-feature-row">
+            <span class="help-feature-icon">💸</span>
+            <div>
+              <strong>Expense Splits</strong>
+              <p><em>Equal split</em> — divides the amount equally among selected members (rounding handled automatically). <em>Custom split</em> — you enter each person's share manually; must add up to the total.</p>
+            </div>
+          </div>
+
+          <div class="help-feature-row">
+            <span class="help-feature-icon">🏠</span>
+            <div>
+              <strong>Groups</strong>
+              <p>Create groups to organize expenses (Home, Vacation, etc.). Each group has its own members — only those members appear in the split when you select that group on an expense. Edit group members anytime via the ✏️ button on the group card.</p>
+            </div>
+          </div>
+
+          <div class="help-feature-row">
+            <span class="help-feature-icon">📷</span>
+            <div>
+              <strong>Bill Photos</strong>
+              <p>Attach a receipt photo to any expense. The app compresses it automatically (a 4 MB phone photo becomes ~100 KB). Tap the thumbnail on any expense card to view it full size.</p>
+            </div>
+          </div>
+
+          <div class="help-feature-row">
+            <span class="help-feature-icon">📊</span>
+            <div>
+              <strong>Charts &amp; Filters</strong>
+              <p>Dashboard shows a category donut chart and spending bar chart. Use the <strong>Filter Charts</strong> panel to see spending for a specific group or for specific members. Toggle Daily / Monthly / Yearly for the bar chart.</p>
+            </div>
+          </div>
+
+          <div class="help-feature-row">
+            <span class="help-feature-icon">💡</span>
+            <div>
+              <strong>Spending Insights</strong>
+              <p>The insights panel compares this month vs last month, projects your end-of-month total, shows your 3-month average, and flags your top spending category. Green = under budget, red = over.</p>
+            </div>
+          </div>
+
+          <div class="help-feature-row">
+            <span class="help-feature-icon">⚖️</span>
+            <div>
+              <strong>Debt Minimization</strong>
+              <p>The Balances tab uses a greedy algorithm to find the fewest possible payments to settle all debts. Example: 4 people with 6 cross-debts might only need 3 bank transfers to fully settle up.</p>
+            </div>
+          </div>
+
+          <div class="help-feature-row">
+            <span class="help-feature-icon">🏪</span>
+            <div>
+              <strong>Store / Vendor Field</strong>
+              <p>When adding an expense, the Store field has 60+ US retailers as autocomplete suggestions (Walmart, Costco, Target, McDonald's, Netflix, etc.). Just start typing.</p>
+            </div>
+          </div>
+
+          <div class="help-feature-row">
+            <span class="help-feature-icon">🗂️</span>
+            <div>
+              <strong>18 Categories</strong>
+              <p>Food &amp; Drinks, Groceries, Rent, Home, Electricity, Gas Bill, Mobile/Phone, Water/Utilities, Credit Card Bill, Transport, Car EMI/Loan, Insurance, Entertainment, Subscriptions, Shopping, Travel, Healthcare, Other.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Portability -->
+      <div class="card help-card">
+        <h3 class="card-title">📱 Using on Other Devices</h3>
+        <div class="help-device-grid">
+
+          <div class="help-device-card">
+            <div class="help-device-icon">💻</div>
+            <div class="help-device-title">Another Laptop / PC</div>
+            <ol class="help-device-steps">
+              <li>Copy the entire <code>expense-splitter</code> folder to the new laptop</li>
+              <li>Also copy your <code>splitease-data.json</code> file</li>
+              <li>Open <code>index.html</code> in Chrome or Edge</li>
+              <li>Click <strong>💾</strong> in the header → Open existing data file → select your <code>.json</code></li>
+              <li>All your data loads instantly ✓</li>
+            </ol>
+          </div>
+
+          <div class="help-device-card">
+            <div class="help-device-icon">🤖</div>
+            <div class="help-device-title">Android Phone</div>
+            <ol class="help-device-steps">
+              <li>Copy the <code>expense-splitter</code> folder to your phone (USB or cloud)</li>
+              <li>Open Chrome → type <code>file:///</code> in address bar → navigate to the folder → tap <code>index.html</code></li>
+              <li>Use <strong>📤 Export</strong> on laptop → <strong>📥 Import</strong> on phone to load your data</li>
+              <li>Note: The 💾 local file feature may not be available on mobile Chrome</li>
+            </ol>
+          </div>
+
+          <div class="help-device-card">
+            <div class="help-device-icon">☁️</div>
+            <div class="help-device-title">Best: Cloud File (any device)</div>
+            <ol class="help-device-steps">
+              <li>Save your <code>splitease-data.json</code> inside Google Drive, OneDrive, or Dropbox</li>
+              <li>On any computer, open the app → click 💾 → link the file from your cloud folder</li>
+              <li>Changes save to the cloud file → accessible from any laptop automatically</li>
+              <li>Works like a shared data file across all your computers</li>
+            </ol>
+          </div>
+
+        </div>
+        <div class="help-tip help-tip-warn">
+          ⚠️ <strong>iPhone / iPad:</strong> Safari restricts local file access. Recommended workaround — use <strong>📤 Export</strong> on your laptop, email the JSON to yourself, open on iPhone and use <strong>📥 Import</strong>.
+        </div>
+      </div>
+
+      <!-- Tips & Tricks -->
+      <div class="card help-card">
+        <h3 class="card-title">💡 Tips &amp; Tricks</h3>
+        <div class="help-tips-grid">
+          <div class="help-tip-item">
+            <span class="help-tip-icon">⌨️</span>
+            <div><strong>Escape key</strong> closes any open modal instantly.</div>
+          </div>
+          <div class="help-tip-item">
+            <span class="help-tip-icon">🔢</span>
+            <div>Click the <strong>Expenses</strong> or <strong>Groups</strong> stat card on the Dashboard to jump directly to that tab.</div>
+          </div>
+          <div class="help-tip-item">
+            <span class="help-tip-icon">🏠</span>
+            <div>Selecting a <strong>group</strong> on the Add Expense form automatically pre-fills only that group's members in the Split section.</div>
+          </div>
+          <div class="help-tip-item">
+            <span class="help-tip-icon">👁️</span>
+            <div>Click <strong>View Expenses →</strong> on any group card to jump to the Expenses tab filtered to that group only.</div>
+          </div>
+          <div class="help-tip-item">
+            <span class="help-tip-icon">🔍</span>
+            <div>Use the <strong>Search + filters</strong> on the Expenses tab to find expenses by name, category, group, or date range.</div>
+          </div>
+          <div class="help-tip-item">
+            <span class="help-tip-icon">✏️</span>
+            <div>You can <strong>edit group members</strong> anytime — tap ✏️ on a group card. Existing expenses are not affected.</div>
+          </div>
+          <div class="help-tip-item">
+            <span class="help-tip-icon">📊</span>
+            <div>Use <strong>By Member(s)</strong> chart filter to see spending for just yourself — useful for tracking personal expenses in a shared household.</div>
+          </div>
+          <div class="help-tip-item">
+            <span class="help-tip-icon">💾</span>
+            <div>Always set up the <strong>local file</strong> (💾 in header) on first use. It takes 10 seconds and protects your data permanently.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- App Info -->
+      <div class="card help-card help-about">
+        <div class="help-about-logo">💰</div>
+        <div class="help-about-name">SplitEase</div>
+        <div class="help-about-desc">A Splitwise-style expense sharing &amp; budget tracking app.<br>Runs 100% in your browser — no account, no server, no subscription.</div>
+        <div class="help-about-features">
+          <span class="help-about-badge">✓ No internet required</span>
+          <span class="help-about-badge">✓ No account needed</span>
+          <span class="help-about-badge">✓ Data stays on your device</span>
+          <span class="help-about-badge">✓ Free forever</span>
+        </div>
+      </div>
+
     </section>
 
   </main>
