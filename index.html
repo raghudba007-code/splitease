@@ -375,47 +375,173 @@
 
       <!-- Portability -->
       <div class="card help-card">
-        <h3 class="card-title">📱 Using on Other Devices</h3>
-        <div class="help-device-grid">
+        <h3 class="card-title">📱 Using on Other Devices — Complete Guide</h3>
 
-          <div class="help-device-card">
-            <div class="help-device-icon">💻</div>
-            <div class="help-device-title">Another Laptop / PC</div>
-            <ol class="help-device-steps">
-              <li>Copy the entire <code>expense-splitter</code> folder to the new laptop</li>
-              <li>Also copy your <code>splitease-data.json</code> file</li>
-              <li>Open <code>index.html</code> in Chrome or Edge</li>
-              <li>Click <strong>💾</strong> in the header → Open existing data file → select your <code>.json</code></li>
-              <li>All your data loads instantly ✓</li>
-            </ol>
+        <!-- Comparison table -->
+        <div class="help-method-table">
+          <div class="help-method-row help-method-header">
+            <span>Method</span><span>Works on PC</span><span>Works on iPhone</span><span>Auto-sync</span><span>Difficulty</span>
           </div>
-
-          <div class="help-device-card">
-            <div class="help-device-icon">🤖</div>
-            <div class="help-device-title">Android Phone</div>
-            <ol class="help-device-steps">
-              <li>Copy the <code>expense-splitter</code> folder to your phone (USB or cloud)</li>
-              <li>Open Chrome → type <code>file:///</code> in address bar → navigate to the folder → tap <code>index.html</code></li>
-              <li>Use <strong>📤 Export</strong> on laptop → <strong>📥 Import</strong> on phone to load your data</li>
-              <li>Note: The 💾 local file feature may not be available on mobile Chrome</li>
-            </ol>
+          <div class="help-method-row">
+            <span>🅐 Google Drive file</span><span class="ok">✅ Yes</span><span class="warn">⚠️ Partial</span><span class="ok">✅ Yes</span><span>Easy</span>
           </div>
-
-          <div class="help-device-card">
-            <div class="help-device-icon">☁️</div>
-            <div class="help-device-title">Best: Cloud File (any device)</div>
-            <ol class="help-device-steps">
-              <li>Save your <code>splitease-data.json</code> inside Google Drive, OneDrive, or Dropbox</li>
-              <li>On any computer, open the app → click 💾 → link the file from your cloud folder</li>
-              <li>Changes save to the cloud file → accessible from any laptop automatically</li>
-              <li>Works like a shared data file across all your computers</li>
-            </ol>
+          <div class="help-method-row">
+            <span>🅑 iCloud Drive</span><span class="ok">✅ Yes</span><span class="ok">✅ Yes</span><span class="warn">⚠️ Manual</span><span>Easy</span>
           </div>
-
+          <div class="help-method-row help-method-best">
+            <span>🅒 GitHub Pages ⭐ Best</span><span class="ok">✅ Yes</span><span class="ok">✅ Yes</span><span class="warn">⚠️ Manual</span><span>One-time setup</span>
+          </div>
         </div>
-        <div class="help-tip help-tip-warn">
-          ⚠️ <strong>iPhone / iPad:</strong> Safari restricts local file access. Recommended workaround — use <strong>📤 Export</strong> on your laptop, email the JSON to yourself, open on iPhone and use <strong>📥 Import</strong>.
+
+        <!-- METHOD A: Google Drive -->
+        <div class="help-method-block">
+          <div class="help-method-heading">
+            <span class="help-method-badge badge-a">Method A</span>
+            <span>Save data file to Google Drive (for PC auto-sync)</span>
+          </div>
+          <div class="help-method-body">
+            <div class="help-numbered-steps">
+              <div class="help-num-step">
+                <span class="help-num">1</span>
+                <div>Install <strong>Google Drive for Desktop</strong> — go to <code>drive.google.com</code> → click Download Drive for Desktop → install and sign in with your Google account</div>
+              </div>
+              <div class="help-num-step">
+                <span class="help-num">2</span>
+                <div>After install, a <strong>Google Drive folder</strong> appears in Windows Explorer (usually listed in the sidebar as "Google Drive" or shows as <code>G:\My Drive\</code>)</div>
+              </div>
+              <div class="help-num-step">
+                <span class="help-num">3</span>
+                <div>Move or copy your <code>splitease-data.json</code> file <strong>into that Google Drive folder</strong> — it will automatically sync to the cloud ☁️</div>
+              </div>
+              <div class="help-num-step">
+                <span class="help-num">4</span>
+                <div>In the app, click <strong>💾 Browser Only</strong> in the header → <strong>Open existing data file</strong> → navigate to your Google Drive folder → select the <code>.json</code> file</div>
+              </div>
+              <div class="help-num-step">
+                <span class="help-num">5</span>
+                <div>Done! Every expense you add now <strong>auto-saves AND syncs to Google Drive</strong>. Open on any other Windows/Mac PC — same steps 3–4, pick the same file ✓</div>
+              </div>
+            </div>
+            <div class="help-note warn">⚠️ On iPhone — Google Drive app cannot run the HTML app directly. Use Method B or C for iPhone access.</div>
+          </div>
         </div>
+
+        <!-- METHOD B: iCloud -->
+        <div class="help-method-block">
+          <div class="help-method-heading">
+            <span class="help-method-badge badge-b">Method B</span>
+            <span>iCloud Drive — best way to access on iPhone</span>
+          </div>
+          <div class="help-method-body">
+            <p class="help-method-sub">Part 1 — Set up on your Windows PC</p>
+            <div class="help-numbered-steps">
+              <div class="help-num-step">
+                <span class="help-num">1</span>
+                <div>Install <strong>iCloud for Windows</strong> — open Microsoft Store → search "iCloud" → Install → sign in with your Apple ID</div>
+              </div>
+              <div class="help-num-step">
+                <span class="help-num">2</span>
+                <div>An <strong>iCloud Drive folder</strong> now appears in Windows Explorer. Copy your entire <code>expense-splitter</code> folder into it — it syncs to Apple's cloud</div>
+              </div>
+              <div class="help-num-step">
+                <span class="help-num">3</span>
+                <div>In the app, click <strong>💾</strong> → link your <code>splitease-data.json</code> from inside the iCloud Drive folder — changes will sync to your iPhone's Files app</div>
+              </div>
+            </div>
+            <p class="help-method-sub" style="margin-top:12px">Part 2 — Access on iPhone</p>
+            <div class="help-numbered-steps">
+              <div class="help-num-step">
+                <span class="help-num">4</span>
+                <div>On your iPhone, open the <strong>Files</strong> app → tap <strong>iCloud Drive</strong> → open the <code>expense-splitter</code> folder → tap <strong>index.html</strong></div>
+              </div>
+              <div class="help-num-step">
+                <span class="help-num">5</span>
+                <div>A prompt appears — tap <strong>"Open in Safari"</strong> (or tap Share icon → Safari). The full SplitEase app opens and runs ✓</div>
+              </div>
+              <div class="help-num-step">
+                <span class="help-num">6</span>
+                <div>To load your data on iPhone: In the app, tap <strong>📥 Import</strong> → Files → iCloud Drive → select your <code>splitease-data.json</code></div>
+              </div>
+              <div class="help-num-step">
+                <span class="help-num">7</span>
+                <div>To send data back from iPhone to PC: tap <strong>📤 Export</strong> on iPhone → save to iCloud Drive → on PC, tap <strong>📥 Import</strong> in the app</div>
+              </div>
+            </div>
+            <div class="help-note ok">✅ This works! The app runs fully in Safari from the Files app. All features work except the 💾 auto-save file button (use Import/Export instead on iPhone).</div>
+          </div>
+        </div>
+
+        <!-- METHOD C: GitHub Pages -->
+        <div class="help-method-block help-method-block-best">
+          <div class="help-method-heading">
+            <span class="help-method-badge badge-c">Method C ⭐</span>
+            <span>GitHub Pages — free URL, works on every device, no copying</span>
+          </div>
+          <div class="help-method-body">
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:12px">Your app code already has 8 git commits saved locally. You just need to push it to GitHub and enable Pages — takes about 5 minutes.</p>
+            <p class="help-method-sub">Step 1 — Create your free GitHub account &amp; repository</p>
+            <div class="help-numbered-steps">
+              <div class="help-num-step">
+                <span class="help-num">1</span>
+                <div>Go to <code>github.com</code> → click <strong>Sign up</strong> → create a free account (remember your username)</div>
+              </div>
+              <div class="help-num-step">
+                <span class="help-num">2</span>
+                <div>After login, click the <strong>+</strong> icon (top right) → <strong>New repository</strong> → Name: <code>splitease</code> → set to <strong>Public</strong> → click <strong>Create repository</strong></div>
+              </div>
+            </div>
+            <p class="help-method-sub" style="margin-top:12px">Step 2 — Push your code (run these in Command Prompt inside the expense-splitter folder)</p>
+            <div class="help-code-block">
+              <div class="help-code-comment"># Replace YOUR_USERNAME with your actual GitHub username</div>
+              <div class="help-code-line">git remote add origin https://github.com/YOUR_USERNAME/splitease.git</div>
+              <div class="help-code-line">git branch -M main</div>
+              <div class="help-code-line">git push -u origin main</div>
+              <div class="help-code-comment"># It will ask for your GitHub username and password</div>
+              <div class="help-code-comment"># (use a Personal Access Token as password — see Step 3)</div>
+            </div>
+            <p class="help-method-sub" style="margin-top:12px">Step 3 — Create a GitHub Personal Access Token (used as your password)</p>
+            <div class="help-numbered-steps">
+              <div class="help-num-step">
+                <span class="help-num">1</span>
+                <div>On GitHub → click your profile photo (top right) → <strong>Settings</strong> → scroll down → <strong>Developer settings</strong></div>
+              </div>
+              <div class="help-num-step">
+                <span class="help-num">2</span>
+                <div>Click <strong>Personal access tokens</strong> → <strong>Tokens (classic)</strong> → <strong>Generate new token (classic)</strong></div>
+              </div>
+              <div class="help-num-step">
+                <span class="help-num">3</span>
+                <div>Give it a name (e.g. "splitease"), set expiration to <strong>No expiration</strong>, tick the <strong>repo</strong> checkbox → click <strong>Generate token</strong></div>
+              </div>
+              <div class="help-num-step">
+                <span class="help-num">4</span>
+                <div><strong>Copy the token immediately</strong> (you won't see it again). Paste it as your password when the git push command asks</div>
+              </div>
+            </div>
+            <p class="help-method-sub" style="margin-top:12px">Step 4 — Enable GitHub Pages (get your live URL)</p>
+            <div class="help-numbered-steps">
+              <div class="help-num-step">
+                <span class="help-num">1</span>
+                <div>Go to your repository on GitHub → click <strong>Settings</strong> tab → scroll down to <strong>Pages</strong> in the left sidebar</div>
+              </div>
+              <div class="help-num-step">
+                <span class="help-num">2</span>
+                <div>Under <strong>Source</strong> → select <strong>Deploy from a branch</strong> → Branch: <strong>main</strong> → folder: <strong>/ (root)</strong> → click <strong>Save</strong></div>
+              </div>
+              <div class="help-num-step">
+                <span class="help-num">3</span>
+                <div>Wait ~2 minutes → refresh the page → your URL appears: <code>https://YOUR_USERNAME.github.io/splitease/</code></div>
+              </div>
+              <div class="help-num-step">
+                <span class="help-num">4</span>
+                <div>Open that URL on your iPhone in Safari — the full app loads! Bookmark it on your home screen for quick access 📌</div>
+              </div>
+            </div>
+            <div class="help-note ok">✅ After this setup, your app is always at that URL. No copying folders. No USB cables. Open from any browser, any device, anywhere in the world.</div>
+            <div class="help-note warn" style="margin-top:8px">⚠️ Data sync between devices: Each device has its own storage. Use <strong>📤 Export</strong> on one device → <strong>📥 Import</strong> on another to move data. The 💾 auto-save file button only works on Chrome/Edge on a PC.</div>
+          </div>
+        </div>
+
       </div>
 
       <!-- Tips & Tricks -->
