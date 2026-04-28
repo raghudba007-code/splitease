@@ -45,6 +45,10 @@
       <span class="tab-icon">⚖️</span>
       <span class="tab-label">Balances</span>
     </button>
+    <button class="nav-tab" data-tab="cards">
+      <span class="tab-icon">💳</span>
+      <span class="tab-label">Cards</span>
+    </button>
     <button class="nav-tab" data-tab="help">
       <span class="tab-icon">ℹ️</span>
       <span class="tab-label">Help</span>
@@ -113,6 +117,7 @@
             <button class="chart-filter-tab active" data-filter="all">All</button>
             <button class="chart-filter-tab" data-filter="group">By Group</button>
             <button class="chart-filter-tab" data-filter="members">By Member(s)</button>
+            <button class="chart-filter-tab" data-filter="card">By Card</button>
           </div>
         </div>
         <div id="chart-filter-body" class="chart-filter-body"></div>
@@ -136,6 +141,19 @@
               <button class="period-btn active" data-period="monthly">Monthly</button>
               <button class="period-btn" data-period="yearly">Yearly</button>
             </div>
+          </div>
+          <div id="spending-range-row" class="range-row">
+            <button class="range-btn" data-range="3">3M</button>
+            <button class="range-btn" data-range="6">6M</button>
+            <button class="range-btn" data-range="9">9M</button>
+            <button class="range-btn active" data-range="12">12M</button>
+            <button class="range-btn" data-range="0">All</button>
+            <button class="range-btn" data-range="-1">Custom</button>
+          </div>
+          <div id="spending-custom-row" class="custom-date-row" style="display:none">
+            <input type="date" id="spending-from" class="input range-date-input">
+            <span style="color:var(--text-muted);font-size:13px">to</span>
+            <input type="date" id="spending-to" class="input range-date-input">
           </div>
           <div class="chart-wrap chart-wrap-bar">
             <canvas id="spending-chart"></canvas>
@@ -229,6 +247,68 @@
         <h3 class="card-title">💡 Suggested Settlements</h3>
         <p class="card-subtitle">Minimum transactions to clear all debts</p>
         <div id="settlements-list"></div>
+      </div>
+    </section>
+
+    <!-- ─── CARDS TAB ─── -->
+    <section class="tab-content" id="tab-cards">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Cards</h2>
+          <p class="section-subtitle">Spending tracked automatically when you select a card on an expense</p>
+        </div>
+      </div>
+
+      <div id="cards-grid" class="cards-grid"></div>
+
+      <div class="charts-grid" style="margin-top:16px">
+        <div class="card">
+          <h3 class="card-title">💳 Payment Method Split</h3>
+          <div class="chart-wrap">
+            <canvas id="payment-chart" width="260" height="260"></canvas>
+          </div>
+          <div id="payment-legend" class="chart-legend"></div>
+        </div>
+
+        <div class="card">
+          <div class="chart-header">
+            <h3 class="card-title" id="card-spending-title" style="margin-bottom:0">Card Spending Over Time</h3>
+            <div class="period-toggle">
+              <button class="period-btn card-period-btn" data-period="daily">Daily</button>
+              <button class="period-btn card-period-btn active" data-period="monthly">Monthly</button>
+              <button class="period-btn card-period-btn" data-period="yearly">Yearly</button>
+            </div>
+          </div>
+          <div class="card-chart-filters">
+            <div class="card-chart-filter-item">
+              <label class="filter-label" style="margin-bottom:0;white-space:nowrap">Group:</label>
+              <select id="card-chart-group" class="input card-chart-sel">
+                <option value="">All Groups</option>
+              </select>
+            </div>
+            <div class="card-chart-filter-item">
+              <label class="filter-label" style="margin-bottom:0;white-space:nowrap">Card:</label>
+              <select id="card-chart-card" class="input card-chart-sel">
+                <option value="">All Cards</option>
+              </select>
+            </div>
+          </div>
+          <div id="card-range-row" class="range-row">
+            <button class="range-btn card-range-btn" data-range="3">3M</button>
+            <button class="range-btn card-range-btn active" data-range="6">6M</button>
+            <button class="range-btn card-range-btn" data-range="12">12M</button>
+            <button class="range-btn card-range-btn" data-range="0">All</button>
+            <button class="range-btn card-range-btn" data-range="-1">Custom</button>
+          </div>
+          <div id="card-custom-row" class="custom-date-row" style="display:none">
+            <input type="date" id="card-from" class="input range-date-input">
+            <span style="color:var(--text-muted);font-size:13px">to</span>
+            <input type="date" id="card-to" class="input range-date-input">
+          </div>
+          <div class="chart-wrap chart-wrap-bar">
+            <canvas id="card-spending-chart"></canvas>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -637,10 +717,18 @@
             <div class="form-group">
               <label class="form-label">Category</label>
               <select id="exp-category" class="input"></select>
+              <div id="exp-custom-cat-row" style="display:none;margin-top:6px">
+                <div style="display:flex;gap:6px;align-items:center">
+                  <input type="text" id="exp-custom-cat-icon" class="input" placeholder="Icon (emoji)" style="max-width:72px">
+                  <input type="text" id="exp-custom-cat-name" class="input" placeholder="Category name…">
+                </div>
+                <p style="font-size:11px;color:var(--text-muted);margin-top:3px">Saved permanently to your category list</p>
+              </div>
             </div>
             <div class="form-group">
               <label class="form-label">Store / Vendor</label>
               <input type="text" id="exp-store" class="input" list="store-list" placeholder="e.g. Walmart, Target…">
+              <p id="exp-store-hint" style="font-size:11px;color:var(--text-muted);margin-top:3px;display:none">New vendor — will be saved to your list</p>
             </div>
           </div>
           <div class="form-row">
@@ -651,6 +739,25 @@
             <div class="form-group">
               <label class="form-label">Notes</label>
               <input type="text" id="exp-notes" class="input" placeholder="Optional">
+            </div>
+          </div>
+
+          <!-- Payment Method -->
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Payment Method</label>
+              <select id="exp-payment-method" class="input">
+                <option value="cash">💵 Cash / UPI / Other</option>
+                <option value="debit">💙 Debit Card</option>
+                <option value="credit">🔴 Credit Card</option>
+              </select>
+            </div>
+            <div class="form-group" id="exp-card-group" style="display:none">
+              <label class="form-label">Which Bank / Card?</label>
+              <select id="exp-card" class="input">
+                <option value="">— Select bank / card —</option>
+              </select>
+              <input type="text" id="exp-card-custom" class="input" placeholder="Type your bank name…" style="display:none;margin-top:6px">
             </div>
           </div>
 
@@ -829,35 +936,8 @@
   <!-- ===== TOAST ===== -->
   <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
-  <!-- ===== US STORE DATALIST ===== -->
-  <datalist id="store-list">
-    <option value="Walmart"><option value="Target"><option value="Costco">
-    <option value="Sam's Club"><option value="Kroger"><option value="Whole Foods">
-    <option value="Trader Joe's"><option value="Publix"><option value="ALDI">
-    <option value="Safeway"><option value="Albertsons"><option value="Meijer">
-    <option value="H-E-B"><option value="Sprouts Farmers Market"><option value="Wegmans">
-    <option value="WinCo Foods"><option value="Food Lion"><option value="Giant Food">
-    <option value="Stop & Shop"><option value="ShopRite">
-    <option value="CVS Pharmacy"><option value="Walgreens"><option value="Rite Aid">
-    <option value="Home Depot"><option value="Lowe's"><option value="IKEA">
-    <option value="Bed Bath & Beyond"><option value="HomeGoods">
-    <option value="Kohl's"><option value="Macy's"><option value="TJ Maxx">
-    <option value="Marshalls"><option value="Ross"><option value="Old Navy">
-    <option value="Best Buy"><option value="Apple Store"><option value="Micro Center">
-    <option value="Amazon"><option value="DoorDash"><option value="Uber Eats">
-    <option value="Grubhub"><option value="Instacart">
-    <option value="McDonald's"><option value="Chick-fil-A"><option value="Starbucks">
-    <option value="Chipotle"><option value="Subway"><option value="Domino's">
-    <option value="Pizza Hut"><option value="Panera Bread"><option value="Taco Bell">
-    <option value="Wendy's"><option value="Burger King">
-    <option value="Netflix"><option value="Hulu"><option value="Disney+">
-    <option value="HBO Max"><option value="Spotify"><option value="Apple TV+">
-    <option value="Amazon Prime"><option value="Peacock">
-    <option value="Verizon"><option value="AT&T"><option value="T-Mobile">
-    <option value="Comcast / Xfinity"><option value="Spectrum"><option value="Cox">
-    <option value="Shell"><option value="ExxonMobil"><option value="Chevron">
-    <option value="BP"><option value="Wawa"><option value="7-Eleven">
-  </datalist>
+  <!-- ===== US STORE DATALIST — populated dynamically by JS ===== -->
+  <datalist id="store-list"></datalist>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="script.js"></script>

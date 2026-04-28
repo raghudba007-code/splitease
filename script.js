@@ -41,25 +41,84 @@ const MEMBER_COLORS = [
 ];
 
 const CURRENCY = '$';
-const STORAGE = { MEMBERS: 'se_members', EXPENSES: 'se_expenses', GROUPS: 'se_groups' };
+const STORAGE = {
+  MEMBERS: 'se_members', EXPENSES: 'se_expenses', GROUPS: 'se_groups',
+  CUSTOM_BANKS: 'se_custom_banks', CUSTOM_CATS: 'se_custom_cats', CUSTOM_STORES: 'se_custom_stores',
+};
+
+// Built-in store list (populated into datalist dynamically so custom stores can be appended)
+const BUILT_IN_STORES = [
+  'Walmart','Target','Costco',"Sam's Club",'Kroger','Whole Foods',"Trader Joe's",'Publix',
+  'ALDI','Safeway','Albertsons','Meijer','H-E-B','Sprouts Farmers Market','Wegmans',
+  'WinCo Foods','Food Lion','Giant Food','Stop & Shop','ShopRite',
+  'CVS Pharmacy','Walgreens','Rite Aid','Home Depot',"Lowe's",'IKEA','Bed Bath & Beyond',
+  'HomeGoods',"Kohl's","Macy's",'TJ Maxx','Marshalls','Ross','Old Navy',
+  'Best Buy','Apple Store','Micro Center',
+  'Amazon','DoorDash','Uber Eats','Grubhub','Instacart',
+  "McDonald's",'Chick-fil-A','Starbucks','Chipotle','Subway',"Domino's",'Pizza Hut',
+  'Panera Bread','Taco Bell',"Wendy's",'Burger King',
+  'Netflix','Hulu','Disney+','HBO Max','Spotify','Apple TV+','Amazon Prime','Peacock',
+  'Verizon','AT&T','T-Mobile','Comcast / Xfinity','Spectrum','Cox',
+  'Shell','ExxonMobil','Chevron','BP','Wawa','7-Eleven',
+];
+
+// Pre-populated bank list — shown in "Which Card?" dropdown (no manual setup needed)
+const BANK_CARDS = [
+  // ── US Banks ──────────────────────────────────────
+  { name: 'Chase',               credit: true,  debit: true  },
+  { name: 'Bank of America',     credit: true,  debit: true  },
+  { name: 'Wells Fargo',         credit: true,  debit: true  },
+  { name: 'Citibank',            credit: true,  debit: true  },
+  { name: 'Capital One',         credit: true,  debit: true  },
+  { name: 'American Express',    credit: true,  debit: false },
+  { name: 'Discover',            credit: true,  debit: true  },
+  { name: 'US Bank',             credit: true,  debit: true  },
+  { name: 'PNC Bank',            credit: true,  debit: true  },
+  { name: 'TD Bank',             credit: true,  debit: true  },
+  { name: 'Navy Federal CU',     credit: true,  debit: true  },
+  { name: 'Ally Bank',           credit: false, debit: true  },
+  { name: 'Charles Schwab',      credit: false, debit: true  },
+  { name: 'Synchrony Bank',      credit: true,  debit: false },
+  { name: 'Barclays',            credit: true,  debit: false },
+  // ── Indian Banks ──────────────────────────────────
+  { name: 'HDFC Bank',           credit: true,  debit: true  },
+  { name: 'ICICI Bank',          credit: true,  debit: true  },
+  { name: 'Axis Bank',           credit: true,  debit: true  },
+  { name: 'SBI',                 credit: true,  debit: true  },
+  { name: 'Kotak Mahindra Bank', credit: true,  debit: true  },
+  { name: 'Yes Bank',            credit: true,  debit: true  },
+  { name: 'IndusInd Bank',       credit: true,  debit: true  },
+];
 
 // ────────────────────────────────────────────────────────────
 // APP STATE
 // ────────────────────────────────────────────────────────────
 
 const state = {
-  members:  [],
-  expenses: [],
-  groups:   [],
+  members:          [],
+  expenses:         [],
+  groups:           [],
+  customBanks:      [],
+  customCategories: [],  // [{ id, name, icon, color }] — user-added categories
+  customStores:     [],  // string[] — user-added vendor names
   filters:  { search: '', category: '', startDate: '', endDate: '', groupId: '' },
   splitType: 'equal',
-  chartPeriod: 'monthly',      // 'daily' | 'monthly' | 'yearly'
-  chartFilter: { type: 'all', groupId: '', memberIds: [] },
+  chartPeriod:      'monthly',
+  chartMonthRange:  12,           // 3 | 6 | 9 | 12 | 0(all) | -1(custom)
+  chartCustomFrom:  '',           // 'YYYY-MM-DD' — only when chartMonthRange === -1
+  chartCustomTo:    '',
+  chartFilter: { type: 'all', groupId: '', memberIds: [], cardName: '' },
+  cardChartPeriod:  'monthly',
+  cardChartRange:   6,            // 3 | 6 | 12 | 0(all) | -1(custom)
+  cardCustomFrom:   '',
+  cardCustomTo:     '',
+  cardChartGroupId: '',
+  cardChartCardName:'',
   editingExpenseId: null,
-  editingGroupId:   null,      // null = create mode, string = edit mode
-  pendingDeleteId:   null,
-  pendingDeleteType: null,
-  charts: { category: null, spending: null },
+  editingGroupId:   null,
+  pendingDeleteId:  null,
+  pendingDeleteType:null,
+  charts: { category: null, spending: null, paymentBreakdown: null, cardSpending: null },
 };
 
 // ────────────────────────────────────────────────────────────
@@ -168,17 +227,26 @@ function loadData() {
   const sm = Store.get(STORAGE.MEMBERS);
   const se = Store.get(STORAGE.EXPENSES);
   const sg = Store.get(STORAGE.GROUPS);
-  state.members  = sm || getSampleMembers();
-  state.expenses = se || getSampleExpenses();
-  state.groups   = sg || getSampleGroups();
+  const sc = Store.get(STORAGE.CUSTOM_BANKS);
+  const scat = Store.get(STORAGE.CUSTOM_CATS);
+  const sst  = Store.get(STORAGE.CUSTOM_STORES);
+  state.members          = sm   || getSampleMembers();
+  state.expenses         = se   || getSampleExpenses();
+  state.groups           = sg   || getSampleGroups();
+  state.customBanks      = Array.isArray(sc)   ? sc   : [];
+  state.customCategories = Array.isArray(scat) ? scat : [];
+  state.customStores     = Array.isArray(sst)  ? sst  : [];
   if (!sm) Store.set(STORAGE.MEMBERS,  state.members);
   if (!se) Store.set(STORAGE.EXPENSES, state.expenses);
   if (!sg) Store.set(STORAGE.GROUPS,   state.groups);
 }
 
-function saveMembers()  { Store.set(STORAGE.MEMBERS,  state.members);  writeDataToFile(); }
-function saveExpenses() { Store.set(STORAGE.EXPENSES, state.expenses); writeDataToFile(); }
-function saveGroups()   { Store.set(STORAGE.GROUPS,   state.groups);   writeDataToFile(); }
+function saveMembers()       { Store.set(STORAGE.MEMBERS,       state.members);          writeDataToFile(); }
+function saveExpenses()      { Store.set(STORAGE.EXPENSES,      state.expenses);         writeDataToFile(); }
+function saveGroups()        { Store.set(STORAGE.GROUPS,        state.groups);           writeDataToFile(); }
+function saveCustomBanks()   { Store.set(STORAGE.CUSTOM_BANKS,  state.customBanks);      writeDataToFile(); }
+function saveCustomCats()    { Store.set(STORAGE.CUSTOM_CATS,   state.customCategories); writeDataToFile(); }
+function saveCustomStores()  { Store.set(STORAGE.CUSTOM_STORES, state.customStores);     writeDataToFile(); }
 
 // ────────────────────────────────────────────────────────────
 // SAMPLE DATA
@@ -270,7 +338,18 @@ function getSampleExpenses() {
 function generateId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 function fmt(v)       { return CURRENCY + Number(v).toFixed(2); }
 function fmtDate(s)   { if (!s) return ''; const [y,m,d] = s.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
-function getCategory(id) { return CATEGORIES.find(c => c.id === id) || CATEGORIES[CATEGORIES.length-1]; }
+function getCategory(id) {
+  return CATEGORIES.find(c => c.id === id) ||
+         state.customCategories.find(c => c.id === id) ||
+         CATEGORIES[CATEGORIES.length-1];
+}
+
+function refreshStoreDatalist() {
+  const dl = document.getElementById('store-list');
+  if (!dl) return;
+  const all = [...new Set([...BUILT_IN_STORES, ...state.customStores])].sort();
+  dl.innerHTML = all.map(s => `<option value="${esc(s)}">`).join('');
+}
 function getMember(id)   { return state.members.find(m => m.id === id) || { name:'Unknown', color:'#94a3b8', initials:'??' }; }
 function getGroup(id)    { return state.groups.find(g => g.id === id) || null; }
 function makeInitials(n) { return n.trim().split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,2); }
@@ -298,7 +377,7 @@ function switchTab(tabId) {
   document.querySelectorAll('.nav-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
   document.querySelectorAll('.tab-content').forEach(s => s.classList.toggle('active', s.id === `tab-${tabId}`));
   ({ dashboard: renderDashboard, expenses: renderExpenses, groups: renderGroups,
-     members: renderMembers, balances: renderBalances })[tabId]?.();
+     members: renderMembers, balances: renderBalances, cards: renderCards })[tabId]?.();
 }
 
 // ────────────────────────────────────────────────────────────
@@ -460,13 +539,10 @@ function renderInsights() {
 // ── Chart filter helpers ────────────────────────────────────
 
 function getChartExpenses() {
-  const { type, groupId, memberIds } = state.chartFilter;
-  if (type === 'group') {
-    return groupId ? state.expenses.filter(e => e.groupId === groupId) : state.expenses;
-  }
-  if (type === 'members' && memberIds.length > 0) {
-    return state.expenses.filter(e => e.splits.some(s => memberIds.includes(s.memberId)));
-  }
+  const { type, groupId, memberIds, cardName } = state.chartFilter;
+  if (type === 'group')   return groupId   ? state.expenses.filter(e => e.groupId === groupId) : state.expenses;
+  if (type === 'members' && memberIds.length > 0) return state.expenses.filter(e => e.splits.some(s => memberIds.includes(s.memberId)));
+  if (type === 'card')    return cardName  ? state.expenses.filter(e => e.cardName === cardName) : state.expenses;
   return state.expenses;
 }
 
@@ -523,6 +599,24 @@ function renderChartFilterUI() {
         renderCategoryChart();
         renderSpendingChart(state.chartPeriod);
       });
+    });
+    return;
+  }
+
+  if (type === 'card') {
+    const names = [...new Set(state.expenses.filter(e => e.cardName).map(e => e.cardName))].sort();
+    body.innerHTML = `
+      <div class="chart-filter-selector">
+        <label class="filter-label">Select a card to filter charts:</label>
+        <select id="chart-card-sel" class="input" style="max-width:320px;margin-top:6px">
+          <option value="">— Show all cards —</option>
+          ${names.map(n => `<option value="${n}" ${n===state.chartFilter.cardName?'selected':''}>${esc(n)}</option>`).join('')}
+        </select>
+      </div>`;
+    document.getElementById('chart-card-sel').addEventListener('change', e => {
+      state.chartFilter.cardName = e.target.value;
+      renderCategoryChart();
+      renderSpendingChart(state.chartPeriod);
     });
   }
 }
@@ -591,16 +685,40 @@ function renderSpendingChart(period) {
     }
 
   } else if (period === 'monthly') {
-    // Last 12 months
-    if (titleEl) titleEl.textContent = 'Monthly Spending (Last 12 Months)';
-    const now = new Date();
-    for (let i = 11; i >= 0; i--) {
-      const d  = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const yr = d.getFullYear(), mo = d.getMonth() + 1;
-      labels.push(d.toLocaleDateString('en-US', { month:'short', year:'2-digit' }));
-      data.push(chartExp
-        .filter(e => { const [ey,em] = e.date.split('-').map(Number); return ey===yr && em===mo; })
-        .reduce((s, e) => s + e.amount, 0));
+    const range = state.chartMonthRange; // 3|6|9|12|0(all)|-1(custom)
+    const addMonths = (fromYM, toYM) => {
+      const [sy, sm] = fromYM.split('-').map(Number);
+      const [ey, em] = toYM.split('-').map(Number);
+      for (let y = sy, m = sm; y < ey || (y === ey && m <= em); ) {
+        const d = new Date(y, m - 1, 1);
+        labels.push(d.toLocaleDateString('en-US', { month:'short', year:'2-digit' }));
+        data.push(chartExp.filter(e => { const [ey2,em2] = e.date.split('-').map(Number); return ey2===y && em2===m; }).reduce((s,e)=>s+e.amount,0));
+        m++; if (m > 12) { m = 1; y++; }
+      }
+    };
+    if (range === 0) {
+      if (titleEl) titleEl.textContent = 'Monthly Spending (All Time)';
+      const allYMs = chartExp.map(e => e.date.slice(0,7)).filter(Boolean);
+      if (allYMs.length) {
+        const minYM = allYMs.reduce((a,b) => a<b?a:b);
+        const now   = new Date();
+        const maxYM = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+        addMonths(minYM, maxYM);
+      }
+    } else if (range === -1) {
+      if (titleEl) titleEl.textContent = 'Monthly Spending (Custom Range)';
+      const from = state.chartCustomFrom, to = state.chartCustomTo;
+      if (from && to && from <= to) addMonths(from.slice(0,7), to.slice(0,7));
+    } else {
+      const n = range;
+      if (titleEl) titleEl.textContent = `Monthly Spending (Last ${n} Month${n===1?'':'s'})`;
+      const now = new Date();
+      for (let i = n-1; i >= 0; i--) {
+        const d  = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const yr = d.getFullYear(), mo = d.getMonth() + 1;
+        labels.push(d.toLocaleDateString('en-US', { month:'short', year:'2-digit' }));
+        data.push(chartExp.filter(e => { const [ey,em] = e.date.split('-').map(Number); return ey===yr && em===mo; }).reduce((s,e)=>s+e.amount,0));
+      }
     }
 
   } else { // yearly
@@ -690,6 +808,9 @@ function expenseItemHTML(expense, showActions) {
   const storeBadge   = expense.store   ? `<span class="store-badge">🏪 ${esc(expense.store)}</span>` : '';
   const groupBadge   = group           ? `<span class="group-badge" style="background:${group.color}20;color:${group.color}">🏠 ${esc(group.name)}</span>` : '';
   const receiptBadge = expense.receipt ? `<span class="receipt-badge">📷 receipt</span>` : '';
+  const payBadge = expense.paymentMethod && expense.paymentMethod !== 'cash'
+    ? `<span class="payment-badge payment-${expense.paymentMethod}">${expense.paymentMethod === 'credit' ? '🔴' : '💙'} ${expense.cardName ? esc(expense.cardName) : (expense.paymentMethod === 'credit' ? 'Credit Card' : 'Debit Card')}</span>`
+    : '';
 
   const receiptThumb = expense.receipt && showActions
     ? `<div class="receipt-thumb-wrap" onclick="viewReceipt('${expense.id}')" title="View bill photo">
@@ -713,7 +834,7 @@ function expenseItemHTML(expense, showActions) {
           <span class="expense-date">${fmtDate(expense.date)}</span>
           <span class="cat-badge" style="background:${cat.color}20;color:${cat.color}">${cat.icon} ${cat.name}</span>
           <span class="payer-info">Paid by <strong>${esc(payer.name)}</strong></span>
-          ${storeBadge}${groupBadge}${receiptBadge}
+          ${storeBadge}${groupBadge}${payBadge}${receiptBadge}
         </div>
         <div class="expense-participants">${avatars}</div>
       </div>
@@ -729,7 +850,7 @@ function populateCategoryFilter() {
   const sel = document.getElementById('filter-category');
   const cur = sel.value;
   sel.innerHTML = '<option value="">All Categories</option>' +
-    CATEGORIES.map(c => `<option value="${c.id}" ${cur===c.id?'selected':''}>${c.icon} ${c.name}</option>`).join('');
+    [...CATEGORIES, ...state.customCategories].map(c => `<option value="${c.id}" ${cur===c.id?'selected':''}>${c.icon} ${c.name}</option>`).join('');
 }
 
 function populateGroupFilter() {
@@ -755,6 +876,8 @@ function openAddExpenseModal() {
   populateExpenseFormSelects('', 'food', '', '');
   renderSplitMembers(null);
   document.getElementById('group-hint').style.display = 'none';
+  document.getElementById('exp-payment-method').value = 'cash';
+  updatePaymentCardUI('cash');
   initReceiptUI(null);
   openModal('expense-modal');
 }
@@ -774,6 +897,9 @@ function openEditExpenseModal(id) {
   populateExpenseFormSelects(exp.paidBy, exp.category, exp.groupId || '', exp.store || '');
   renderSplitMembers(exp.splits);
   updateGroupHint(exp.groupId || '');
+  const pm = exp.paymentMethod || 'cash';
+  document.getElementById('exp-payment-method').value = pm;
+  updatePaymentCardUI(pm, exp.cardName || '');
   initReceiptUI(exp.receipt || null);
   openModal('expense-modal');
 }
@@ -784,7 +910,9 @@ function populateExpenseFormSelects(paidBy, category, groupId) {
     state.members.map(m => `<option value="${m.id}" ${m.id===paidBy?'selected':''}>${esc(m.name)}</option>`).join('');
 
   document.getElementById('exp-category').innerHTML =
-    CATEGORIES.map(c => `<option value="${c.id}" ${c.id===category?'selected':''}>${c.icon} ${c.name}</option>`).join('');
+    [...CATEGORIES, ...state.customCategories].map(c => `<option value="${c.id}" ${c.id===category?'selected':''}>${c.icon} ${c.name}</option>`).join('') +
+    '<option value="__new_cat__">➕ Add new category…</option>';
+  updateCustomCategoryUI(category);
 
   document.getElementById('exp-group').innerHTML =
     '<option value="">No group</option>' +
@@ -813,6 +941,50 @@ function applyGroupMembers() {
   if (!g) return;
   renderSplitMembers(g.memberIds.map(id => ({ memberId: id, amount: 0 })));
   showToast(`Applied ${g.name} members.`, 'info');
+}
+
+function updatePaymentCardUI(pm, currentCardName) {
+  const group = document.getElementById('exp-card-group');
+  const sel   = document.getElementById('exp-card');
+  if (!group || !sel) return;
+  if (pm === 'cash') {
+    group.style.display = 'none';
+    updateCustomCardInput('');
+    return;
+  }
+  group.style.display = '';
+  const builtIn = BANK_CARDS.filter(b => pm === 'credit' ? b.credit : b.debit);
+  const allKnown = new Set([...builtIn.map(b => b.name), ...state.customBanks]);
+  const isCustom = currentCardName && !allKnown.has(currentCardName);
+
+  let html = '<option value="">— Select bank / card —</option>';
+  html += '<optgroup label="Common Banks">';
+  html += builtIn.map(b => `<option value="${b.name}" ${b.name===currentCardName?'selected':''}>${b.name}</option>`).join('');
+  html += '</optgroup>';
+  if (state.customBanks.length) {
+    html += '<optgroup label="My Banks">';
+    html += state.customBanks.map(n => `<option value="${n}" ${n===currentCardName?'selected':''}>${esc(n)}</option>`).join('');
+    html += '</optgroup>';
+  }
+  html += `<option value="__custom__" ${isCustom?'selected':''}>✏️ Add new bank to my list…</option>`;
+  sel.innerHTML = html;
+
+  updateCustomCardInput(isCustom ? '__custom__' : sel.value);
+  if (isCustom) document.getElementById('exp-card-custom').value = currentCardName;
+}
+
+function updateCustomCardInput(selValue) {
+  const inp = document.getElementById('exp-card-custom');
+  if (!inp) return;
+  const show = selValue === '__custom__';
+  inp.style.display = show ? '' : 'none';
+  if (!show) inp.value = '';
+}
+
+function updateCustomCategoryUI(catValue) {
+  const row = document.getElementById('exp-custom-cat-row');
+  if (!row) return;
+  row.style.display = catValue === '__new_cat__' ? '' : 'none';
 }
 
 // ────────────────────────────────────────────────────────────
@@ -919,7 +1091,40 @@ function saveExpense() {
       return showToast('Custom amounts must sum to the total.', 'error');
   }
 
-  const expense = { id: state.editingExpenseId || generateId(), title, amount, paidBy, date, category, store, groupId, notes, splitType: state.splitType, splits, receipt: pendingReceipt || null };
+  // Handle custom category creation
+  let finalCategory = category;
+  if (category === '__new_cat__') {
+    const catName = document.getElementById('exp-custom-cat-name').value.trim();
+    const catIcon = document.getElementById('exp-custom-cat-icon').value.trim() || '📦';
+    if (!catName) return showToast('Please enter a category name.', 'error');
+    const catId = 'cat_' + generateId();
+    state.customCategories.push({ id: catId, name: catName, icon: catIcon, color: MEMBER_COLORS[state.customCategories.length % MEMBER_COLORS.length] });
+    saveCustomCats();
+    finalCategory = catId;
+    showToast(`Category "${catName}" saved ✓`);
+  }
+
+  // Auto-save new store/vendor to custom stores list
+  if (store && !BUILT_IN_STORES.includes(store) && !state.customStores.includes(store)) {
+    state.customStores.push(store);
+    state.customStores.sort();
+    saveCustomStores();
+    refreshStoreDatalist();
+  }
+
+  const paymentMethod = document.getElementById('exp-payment-method').value || 'cash';
+  let cardName = '';
+  let isNewCustomBank = false;
+  if (paymentMethod !== 'cash') {
+    const sel = document.getElementById('exp-card').value;
+    if (sel === '__custom__') {
+      cardName = document.getElementById('exp-card-custom').value.trim();
+      if (cardName && !state.customBanks.includes(cardName)) isNewCustomBank = true;
+    } else {
+      cardName = sel;
+    }
+  }
+  const expense = { id: state.editingExpenseId || generateId(), title, amount, paidBy, date, category: finalCategory, store, groupId, notes, splitType: state.splitType, splits, receipt: pendingReceipt || null, paymentMethod, cardName };
 
   if (state.editingExpenseId) {
     const idx = state.expenses.findIndex(e => e.id === state.editingExpenseId);
@@ -928,6 +1133,13 @@ function saveExpense() {
   } else {
     state.expenses.push(expense);
     showToast('Expense added! ✓');
+  }
+  // Permanently save a newly typed bank name so it appears in future dropdowns
+  if (isNewCustomBank) {
+    state.customBanks.push(cardName);
+    state.customBanks.sort();
+    saveCustomBanks();
+    showToast(`"${cardName}" saved to your bank list ✓`, 'success');
   }
   saveExpenses();
   closeModal('expense-modal');
@@ -1084,6 +1296,228 @@ function saveGroup() {
 }
 
 // ────────────────────────────────────────────────────────────
+// CARDS  (Credit & Debit card tracking)
+// ────────────────────────────────────────────────────────────
+
+function renderCards() {
+  populateCardChartFilters();
+  renderCardManagement();
+  renderPaymentBreakdownChart();
+  renderCardSpendingChart();
+}
+
+function renderCardManagement() {
+  const grid = document.getElementById('cards-grid');
+  if (!grid) return;
+
+  // Build card summary from expenses (group by cardName)
+  const now = new Date();
+  const cardMap = {};
+  state.expenses.forEach(e => {
+    if (!e.cardName || e.paymentMethod === 'cash') return;
+    const key = e.cardName + '|' + e.paymentMethod;
+    if (!cardMap[key]) cardMap[key] = { name: e.cardName, type: e.paymentMethod, total: 0, count: 0, thisMonth: 0 };
+    cardMap[key].total += e.amount;
+    cardMap[key].count++;
+    const [y, m] = e.date.split('-').map(Number);
+    if (y === now.getFullYear() && m === now.getMonth() + 1) cardMap[key].thisMonth += e.amount;
+  });
+  const cards = Object.values(cardMap).sort((a, b) => b.total - a.total);
+
+  if (!cards.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">💳</div>
+      <p>No card expenses yet.</p>
+      <p class="empty-sub">When you add an expense with Debit or Credit selected, the card appears here automatically.</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = cards.map((c, i) => {
+    const color     = MEMBER_COLORS[i % MEMBER_COLORS.length];
+    const typeIcon  = c.type === 'credit' ? '🔴' : '💙';
+    const typeLabel = c.type === 'credit' ? 'Credit' : 'Debit';
+    return `
+      <div class="card-visual" style="background:linear-gradient(135deg,${color}dd,${color}99)">
+        <div class="card-visual-header">
+          <div class="card-visual-bank">${esc(c.name)}</div>
+          <span class="card-type-badge card-type-${c.type}">${typeIcon} ${typeLabel}</span>
+        </div>
+        <div class="card-visual-num">•••• •••• •••• ····</div>
+        <div class="card-visual-footer">
+          <div>
+            <div class="card-visual-label">Total Spent</div>
+            <div class="card-visual-value">${fmt(c.total)}</div>
+          </div>
+          <div style="text-align:right">
+            <div class="card-visual-label">This Month</div>
+            <div class="card-visual-value">${fmt(c.thisMonth)}</div>
+          </div>
+        </div>
+        <div class="card-visual-stats">
+          <span style="font-size:11px;opacity:.85">${c.count} expense${c.count!==1?'s':''}</span>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function populateCardChartFilters() {
+  const groupSel = document.getElementById('card-chart-group');
+  const cardSel  = document.getElementById('card-chart-card');
+  if (!groupSel || !cardSel) return;
+  groupSel.innerHTML = '<option value="">All Groups</option>' +
+    state.groups.map(g => `<option value="${g.id}" ${g.id===state.cardChartGroupId?'selected':''}>${esc(g.name)}</option>`).join('');
+  // Unique card names from expenses
+  const names = [...new Set(state.expenses.filter(e => e.cardName).map(e => e.cardName))].sort();
+  cardSel.innerHTML = '<option value="">All Cards</option>' +
+    names.map(n => `<option value="${n}" ${n===state.cardChartCardName?'selected':''}>${esc(n)}</option>`).join('');
+}
+
+function renderPaymentBreakdownChart() {
+  const canvas = document.getElementById('payment-chart');
+  if (!canvas || typeof Chart === 'undefined') return;
+
+  // Filter to match card tab selections (group + specific card)
+  let exps = state.expenses;
+  if (state.cardChartGroupId)  exps = exps.filter(e => e.groupId  === state.cardChartGroupId);
+  if (state.cardChartCardName) exps = exps.filter(e => e.cardName === state.cardChartCardName);
+
+  const totals = { cash: 0, debit: 0, credit: 0 };
+  exps.forEach(e => { const pm = e.paymentMethod || 'cash'; totals[pm] = (totals[pm] || 0) + e.amount; });
+
+  if (state.charts.paymentBreakdown) { state.charts.paymentBreakdown.destroy(); state.charts.paymentBreakdown = null; }
+
+  const labels = ['💵 Cash', '💙 Debit', '🔴 Credit'];
+  const data   = [totals.cash, totals.debit, totals.credit];
+  const colors = ['#22c55e', '#3b82f6', '#ef4444'];
+
+  state.charts.paymentBreakdown = new Chart(canvas, {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: '#fff' }] },
+    options: {
+      responsive: true, maintainAspectRatio: true, cutout: '62%',
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${fmt(ctx.raw)}` } },
+      },
+    },
+  });
+
+  document.getElementById('payment-legend').innerHTML = labels.map((label, i) =>
+    `<div class="legend-item">
+       <span class="legend-dot" style="background:${colors[i]}"></span>
+       <span class="legend-label">${label}</span>
+       <span class="legend-value">${fmt(data[i])}</span>
+     </div>`
+  ).join('');
+}
+
+function renderCardSpendingChart() {
+  const canvas = document.getElementById('card-spending-chart');
+  if (!canvas || typeof Chart === 'undefined') return;
+
+  const period  = state.cardChartPeriod;
+  const groupId = state.cardChartGroupId;
+  const cardId  = state.cardChartCardName;
+  const titleEl = document.getElementById('card-spending-title');
+  const now     = new Date();
+  let timeLabels = [], matchFn;
+
+  if (period === 'daily') {
+    if (titleEl) titleEl.textContent = 'Card Spending (Last 30 Days)';
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const iso = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      timeLabels.push({ label: d.toLocaleDateString('en-US', { month:'short', day:'numeric' }), key: iso });
+    }
+    matchFn = (e, key) => e.date === key;
+  } else if (period === 'monthly') {
+    const range = state.cardChartRange; // 3|6|12|0|-1
+    const buildMonthLabels = (fromYM, toYM) => {
+      const [sy, sm] = fromYM.split('-').map(Number);
+      const [ey, em] = toYM.split('-').map(Number);
+      for (let y = sy, m = sm; y < ey || (y === ey && m <= em); ) {
+        const d = new Date(y, m - 1, 1);
+        timeLabels.push({ label: d.toLocaleDateString('en-US', { month:'short', year:'2-digit' }), key: `${y}-${m}` });
+        m++; if (m > 12) { m = 1; y++; }
+      }
+    };
+    if (range === 0) {
+      if (titleEl) titleEl.textContent = 'Card Spending (All Time)';
+      const allYMs = state.expenses.filter(e=>e.cardName).map(e => e.date.slice(0,7)).filter(Boolean);
+      if (allYMs.length) {
+        const minYM = allYMs.reduce((a,b)=>a<b?a:b);
+        const maxYM = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+        buildMonthLabels(minYM, maxYM);
+      }
+    } else if (range === -1) {
+      if (titleEl) titleEl.textContent = 'Card Spending (Custom Range)';
+      const from = state.cardCustomFrom, to = state.cardCustomTo;
+      if (from && to && from <= to) buildMonthLabels(from.slice(0,7), to.slice(0,7));
+    } else {
+      const n = range;
+      if (titleEl) titleEl.textContent = `Card Spending (Last ${n} Month${n===1?'':'s'})`;
+      for (let i = n-1; i >= 0; i--) {
+        const d  = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const yr = d.getFullYear(), mo = d.getMonth() + 1;
+        timeLabels.push({ label: d.toLocaleDateString('en-US', { month:'short', year:'2-digit' }), key: `${yr}-${mo}` });
+      }
+    }
+    matchFn = (e, key) => { const [y,m] = e.date.split('-').map(Number); return `${y}-${m}` === key; };
+  } else {
+    if (titleEl) titleEl.textContent = 'Card Spending (Yearly)';
+    const cardExp = state.expenses.filter(e => e.cardName);
+    const years   = [...new Set(cardExp.map(e => e.date.slice(0,4)))].sort();
+    if (!years.length) years.push(String(now.getFullYear()));
+    timeLabels = years.map(y => ({ label: y, key: y }));
+    matchFn = (e, key) => e.date.startsWith(key);
+  }
+
+  let baseExp = state.expenses.filter(e => e.cardName && e.paymentMethod !== 'cash');
+  if (groupId) baseExp = baseExp.filter(e => e.groupId === groupId);
+
+  // Unique card names in use
+  const allNames     = [...new Set(baseExp.map(e => e.cardName))].sort();
+  const cardName     = state.cardChartCardName;
+  const visibleNames = cardName ? [cardName] : allNames;
+
+  const datasets = visibleNames.map((name, i) => {
+    const color = MEMBER_COLORS[i % MEMBER_COLORS.length];
+    return {
+      label: name,
+      data: timeLabels.map(({ key }) =>
+        baseExp.filter(e => e.cardName === name && matchFn(e, key)).reduce((s, e) => s + e.amount, 0)
+      ),
+      backgroundColor: color + 'bb',
+      borderColor: color,
+      borderWidth: 1,
+      borderRadius: 4,
+      borderSkipped: false,
+    };
+  });
+
+  if (state.charts.cardSpending) { state.charts.cardSpending.destroy(); state.charts.cardSpending = null; }
+  if (!visibleNames.length) return;
+
+  state.charts.cardSpending = new Chart(canvas, {
+    type: 'bar',
+    data: { labels: timeLabels.map(t => t.label), datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: datasets.length > 1, position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${fmt(ctx.raw)}` } },
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { callback: v => CURRENCY + v }, grid: { color: '#f1f5f9' } },
+        x: { grid: { display: false }, ticks: { maxRotation: period === 'daily' ? 45 : 0 } },
+      },
+    },
+  });
+}
+
+
+// ────────────────────────────────────────────────────────────
 // MEMBERS
 // ────────────────────────────────────────────────────────────
 
@@ -1233,7 +1667,8 @@ function renderBalances() {
 
 function exportData() {
   const blob = new Blob([JSON.stringify({ version:'1.0', exportedAt: new Date().toISOString(),
-    members: state.members, expenses: state.expenses, groups: state.groups }, null, 2)], { type:'application/json' });
+    members: state.members, expenses: state.expenses, groups: state.groups,
+    customBanks: state.customBanks, customCategories: state.customCategories, customStores: state.customStores }, null, 2)], { type:'application/json' });
   const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `splitease-${todayISO()}.json` });
   a.click(); URL.revokeObjectURL(a.href);
   showToast('Data exported! 📤');
@@ -1245,10 +1680,14 @@ function importData(file) {
     try {
       const data = JSON.parse(e.target.result);
       if (!Array.isArray(data.members) || !Array.isArray(data.expenses)) throw new Error();
-      state.members  = data.members;
-      state.expenses = data.expenses;
-      state.groups   = data.groups || [];
-      saveMembers(); saveExpenses(); saveGroups();
+      state.members          = data.members;
+      state.expenses         = data.expenses;
+      state.groups           = data.groups           || [];
+      state.customBanks      = Array.isArray(data.customBanks)      ? data.customBanks      : [];
+      state.customCategories = Array.isArray(data.customCategories) ? data.customCategories : [];
+      state.customStores     = Array.isArray(data.customStores)     ? data.customStores     : [];
+      saveMembers(); saveExpenses(); saveGroups(); saveCustomBanks(); saveCustomCats(); saveCustomStores();
+      refreshStoreDatalist();
       renderDashboard();
       showToast('Data imported! 📥');
     } catch { showToast('Invalid file format.', 'error'); }
@@ -1267,8 +1706,10 @@ function promptClearData() {
 
 function clearAllData() {
   state.members = []; state.expenses = []; state.groups = [];
+  state.customBanks = []; state.customCategories = []; state.customStores = [];
   state.filters = { search:'', category:'', startDate:'', endDate:'', groupId:'' };
-  saveMembers(); saveExpenses(); saveGroups();
+  saveMembers(); saveExpenses(); saveGroups(); saveCustomBanks(); saveCustomCats(); saveCustomStores();
+  refreshStoreDatalist();
   renderDashboard();
   showToast('All data cleared.', 'info');
 }
@@ -1355,8 +1796,33 @@ function initEvents() {
       document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       state.chartPeriod = btn.dataset.period;
+      const rangeRow  = document.getElementById('spending-range-row');
+      const customRow = document.getElementById('spending-custom-row');
+      if (rangeRow)  rangeRow.style.display  = btn.dataset.period === 'monthly' ? '' : 'none';
+      if (customRow) customRow.style.display = 'none';
       renderSpendingChart(state.chartPeriod);
     });
+  });
+
+  // ── Monthly range buttons (spending chart) ──
+  document.querySelectorAll('#spending-range-row .range-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (state.chartPeriod !== 'monthly') return;
+      document.querySelectorAll('#spending-range-row .range-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.chartMonthRange = parseInt(btn.dataset.range);
+      const customRow = document.getElementById('spending-custom-row');
+      if (customRow) customRow.style.display = state.chartMonthRange === -1 ? '' : 'none';
+      renderSpendingChart(state.chartPeriod);
+    });
+  });
+  document.getElementById('spending-from')?.addEventListener('change', e => {
+    state.chartCustomFrom = e.target.value;
+    if (state.chartMonthRange === -1) renderSpendingChart(state.chartPeriod);
+  });
+  document.getElementById('spending-to')?.addEventListener('change', e => {
+    state.chartCustomTo = e.target.value;
+    if (state.chartMonthRange === -1) renderSpendingChart(state.chartPeriod);
   });
 
   // ── Expense modal ──
@@ -1430,6 +1896,64 @@ function initEvents() {
   document.getElementById('close-confirm-modal').addEventListener('click', () => closeModal('confirm-modal'));
   document.getElementById('cancel-confirm-btn').addEventListener('click', () => closeModal('confirm-modal'));
   document.getElementById('confirm-ok-btn').addEventListener('click', executeConfirmAction);
+
+  // ── Payment method in expense form ──
+  document.getElementById('exp-payment-method').addEventListener('change', e => updatePaymentCardUI(e.target.value));
+
+  // ── Cards tab — chart filters ──
+  document.querySelectorAll('.card-period-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.card-period-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.cardChartPeriod = btn.dataset.period;
+      renderCardSpendingChart();
+    });
+  });
+  document.getElementById('card-chart-group')?.addEventListener('change', e => {
+    state.cardChartGroupId = e.target.value;
+    renderPaymentBreakdownChart();
+    renderCardSpendingChart();
+  });
+  document.getElementById('card-chart-card')?.addEventListener('change', e => {
+    state.cardChartCardName = e.target.value;
+    renderPaymentBreakdownChart();
+    renderCardSpendingChart();
+  });
+
+  // ── Card chart range buttons ──
+  document.querySelectorAll('.card-range-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.card-range-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.cardChartRange = parseInt(btn.dataset.range);
+      const customRow = document.getElementById('card-custom-row');
+      if (customRow) customRow.style.display = state.cardChartRange === -1 ? '' : 'none';
+      renderCardSpendingChart();
+    });
+  });
+  document.getElementById('card-from')?.addEventListener('change', e => {
+    state.cardCustomFrom = e.target.value;
+    if (state.cardChartRange === -1) renderCardSpendingChart();
+  });
+  document.getElementById('card-to')?.addEventListener('change', e => {
+    state.cardCustomTo = e.target.value;
+    if (state.cardChartRange === -1) renderCardSpendingChart();
+  });
+
+  // ── Custom category show/hide in expense form ──
+  document.getElementById('exp-category')?.addEventListener('change', e => updateCustomCategoryUI(e.target.value));
+
+  // ── Store/vendor hint when user types a new entry ──
+  document.getElementById('exp-store')?.addEventListener('input', e => {
+    const val  = e.target.value.trim();
+    const hint = document.getElementById('exp-store-hint');
+    if (!hint) return;
+    const isNew = val && !BUILT_IN_STORES.includes(val) && !state.customStores.includes(val);
+    hint.style.display = isNew ? '' : 'none';
+  });
+
+  // ── "Other" custom card name input ──
+  document.getElementById('exp-card')?.addEventListener('change', e => updateCustomCardInput(e.target.value));
 
   // ── File storage modal ──
   document.getElementById('file-badge').addEventListener('click', openFileModal);
@@ -1522,6 +2046,7 @@ async function writeDataToFile() {
     const payload = JSON.stringify({
       version: '1.0', savedAt: new Date().toISOString(),
       members: state.members, expenses: state.expenses, groups: state.groups,
+      customBanks: state.customBanks, customCategories: state.customCategories, customStores: state.customStores,
     }, null, 2);
     const writable = await fsHandle.createWritable();
     await writable.write(payload);
@@ -1565,10 +2090,14 @@ async function pickFile(create = false) {
       // Load data from the chosen file
       const data = await _readFromHandle(handle);
       if (data && Array.isArray(data.members) && Array.isArray(data.expenses)) {
-        state.members  = data.members;
-        state.expenses = data.expenses;
-        state.groups   = data.groups || [];
-        saveMembers(); saveExpenses(); saveGroups(); // sync localStorage backup
+        state.members          = data.members;
+        state.expenses         = data.expenses;
+        state.groups           = data.groups           || [];
+        state.customBanks      = Array.isArray(data.customBanks)      ? data.customBanks      : [];
+        state.customCategories = Array.isArray(data.customCategories) ? data.customCategories : [];
+        state.customStores     = Array.isArray(data.customStores)     ? data.customStores     : [];
+        saveMembers(); saveExpenses(); saveGroups(); saveCustomBanks(); saveCustomCats(); saveCustomStores();
+        refreshStoreDatalist();
         renderDashboard();
         showToast(`Loaded from "${handle.name}" ✓`, 'success');
       } else {
@@ -1649,12 +2178,19 @@ async function initFileStorage() {
     fsHandle = handle;
     const data = await _readFromHandle(handle);
     if (data && Array.isArray(data.members) && Array.isArray(data.expenses)) {
-      state.members  = data.members;
-      state.expenses = data.expenses;
-      state.groups   = data.groups || [];
-      Store.set(STORAGE.MEMBERS,  state.members);
-      Store.set(STORAGE.EXPENSES, state.expenses);
-      Store.set(STORAGE.GROUPS,   state.groups);
+      state.members          = data.members;
+      state.expenses         = data.expenses;
+      state.groups           = data.groups           || [];
+      state.customBanks      = Array.isArray(data.customBanks)      ? data.customBanks      : [];
+      state.customCategories = Array.isArray(data.customCategories) ? data.customCategories : [];
+      state.customStores     = Array.isArray(data.customStores)     ? data.customStores     : [];
+      Store.set(STORAGE.MEMBERS,       state.members);
+      Store.set(STORAGE.EXPENSES,      state.expenses);
+      Store.set(STORAGE.GROUPS,        state.groups);
+      Store.set(STORAGE.CUSTOM_BANKS,  state.customBanks);
+      Store.set(STORAGE.CUSTOM_CATS,   state.customCategories);
+      Store.set(STORAGE.CUSTOM_STORES, state.customStores);
+      refreshStoreDatalist();
       renderDashboard();
     }
   } catch (err) { console.warn('Auto-load failed:', err); }
@@ -1667,7 +2203,8 @@ async function initFileStorage() {
 // ────────────────────────────────────────────────────────────
 
 async function init() {
-  loadData();       // immediate: load from localStorage
+  loadData();             // immediate: load from localStorage
+  refreshStoreDatalist(); // populate datalist with built-in + custom stores
   initEvents();
   renderDashboard();
   await initFileStorage(); // async: silently load from file if already linked
