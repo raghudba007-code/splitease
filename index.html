@@ -17,6 +17,7 @@
     <div class="header-actions">
       <button class="btn-icon" id="export-btn" title="Export Data">📤 Export</button>
       <button class="btn-icon" id="import-btn" title="Import Data">📥 Import</button>
+      <button class="btn-icon btn-icon-warn" id="reset-btn" title="Clear all data">🗑️ Clear Data</button>
       <input type="file" id="import-file" accept=".json" style="display:none">
     </div>
   </header>
@@ -30,6 +31,10 @@
     <button class="nav-tab" data-tab="expenses">
       <span class="tab-icon">💸</span>
       <span class="tab-label">Expenses</span>
+    </button>
+    <button class="nav-tab" data-tab="groups">
+      <span class="tab-icon">🏠</span>
+      <span class="tab-label">Groups</span>
     </button>
     <button class="nav-tab" data-tab="members">
       <span class="tab-icon">👥</span>
@@ -53,7 +58,6 @@
         </div>
       </div>
 
-      <!-- Summary stat cards -->
       <div class="stats-grid">
         <div class="stat-card stat-primary">
           <div class="stat-icon-wrap">💰</div>
@@ -76,16 +80,15 @@
             <div class="stat-value" id="stat-count">0</div>
           </div>
         </div>
-        <div class="stat-card stat-danger">
-          <div class="stat-icon-wrap">👥</div>
+        <div class="stat-card stat-info">
+          <div class="stat-icon-wrap">🏠</div>
           <div class="stat-body">
-            <div class="stat-label">Members</div>
-            <div class="stat-value" id="stat-members">0</div>
+            <div class="stat-label">Groups</div>
+            <div class="stat-value" id="stat-groups">0</div>
           </div>
         </div>
       </div>
 
-      <!-- Charts -->
       <div class="charts-grid">
         <div class="card">
           <h3 class="card-title">Spending by Category</h3>
@@ -102,7 +105,6 @@
         </div>
       </div>
 
-      <!-- Recent transactions -->
       <div class="card">
         <div class="card-row">
           <h3 class="card-title">Recent Transactions</h3>
@@ -122,7 +124,6 @@
         <button class="btn btn-primary" id="add-expense-btn">+ Add Expense</button>
       </div>
 
-      <!-- Filter bar -->
       <div class="card filter-card">
         <div class="filter-row">
           <div class="filter-group">
@@ -133,6 +134,12 @@
             <label class="filter-label">Category</label>
             <select id="filter-category" class="input">
               <option value="">All</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Group</label>
+            <select id="filter-group" class="input">
+              <option value="">All Groups</option>
             </select>
           </div>
           <div class="filter-group">
@@ -147,8 +154,19 @@
         </div>
       </div>
 
-      <!-- Expense list -->
       <div id="expense-list"></div>
+    </section>
+
+    <!-- ─── GROUPS TAB ─── -->
+    <section class="tab-content" id="tab-groups">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Groups</h2>
+          <p class="section-subtitle">Organize expenses by household, trip, or any shared context</p>
+        </div>
+        <button class="btn btn-primary" id="add-group-btn">+ Create Group</button>
+      </div>
+      <div id="groups-grid" class="groups-grid"></div>
     </section>
 
     <!-- ─── MEMBERS TAB ─── -->
@@ -156,7 +174,7 @@
       <div class="section-header">
         <div>
           <h2 class="section-title">Members</h2>
-          <p class="section-subtitle">Manage who's in the group</p>
+          <p class="section-subtitle">Manage who's in the pool</p>
         </div>
         <button class="btn btn-primary" id="add-member-btn">+ Add Member</button>
       </div>
@@ -168,12 +186,10 @@
       <div class="section-header">
         <div>
           <h2 class="section-title">Balances</h2>
-          <p class="section-subtitle">Who owes whom</p>
+          <p class="section-subtitle">Who owes whom across all expenses</p>
         </div>
       </div>
-
       <div id="balance-summary" class="balance-grid"></div>
-
       <div class="card" id="settlements-card">
         <h3 class="card-title">💡 Suggested Settlements</h3>
         <p class="card-subtitle">Minimum transactions to clear all debts</p>
@@ -181,7 +197,7 @@
       </div>
     </section>
 
-  </main><!-- /app-main -->
+  </main>
 
 
   <!-- ===== EXPENSE MODAL ===== -->
@@ -197,7 +213,7 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Title <span class="req">*</span></label>
-              <input type="text" id="exp-title" class="input" placeholder="e.g. Grocery shopping" required>
+              <input type="text" id="exp-title" class="input" placeholder="e.g. Grocery run" required>
             </div>
             <div class="form-group">
               <label class="form-label">Amount <span class="req">*</span></label>
@@ -227,9 +243,28 @@
               <select id="exp-category" class="input"></select>
             </div>
             <div class="form-group">
+              <label class="form-label">Store / Vendor</label>
+              <input type="text" id="exp-store" class="input" list="store-list" placeholder="e.g. Walmart, Target…">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Group</label>
+              <select id="exp-group" class="input">
+                <option value="">No group (ungrouped)</option>
+              </select>
+            </div>
+            <div class="form-group">
               <label class="form-label">Notes</label>
               <input type="text" id="exp-notes" class="input" placeholder="Optional">
             </div>
+          </div>
+
+          <!-- Group member hint -->
+          <div id="group-hint" class="group-hint" style="display:none">
+            <span id="group-hint-text"></span>
+            <button type="button" class="btn-link" id="apply-group-members-btn">Apply group members to split →</button>
           </div>
 
           <!-- Split section -->
@@ -254,6 +289,42 @@
       <div class="modal-footer">
         <button class="btn btn-ghost" id="cancel-expense-btn">Cancel</button>
         <button class="btn btn-primary" id="save-expense-btn">Save Expense</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== GROUP MODAL ===== -->
+  <div class="modal-overlay" id="group-modal" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title">Create Group</h3>
+        <button class="modal-close" id="close-group-modal" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="group-form" autocomplete="off">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Group Name <span class="req">*</span></label>
+              <input type="text" id="group-name" class="input" placeholder="e.g. Home, Road Trip, Roommates…" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Description</label>
+              <input type="text" id="group-desc" class="input" placeholder="Optional">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:14px">
+            <label class="form-label">Color</label>
+            <div id="group-color-picker" class="color-picker"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Members in this group <span class="req">*</span></label>
+            <div id="group-member-picker" class="split-members-list"></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="cancel-group-btn">Cancel</button>
+        <button class="btn btn-primary" id="save-group-btn">Create Group</button>
       </div>
     </div>
   </div>
@@ -288,7 +359,7 @@
   <div class="modal-overlay" id="confirm-modal" role="dialog" aria-modal="true">
     <div class="modal modal-sm">
       <div class="modal-header">
-        <h3 class="modal-title">Confirm Action</h3>
+        <h3 class="modal-title" id="confirm-title">Confirm Action</h3>
         <button class="modal-close" id="close-confirm-modal" aria-label="Close">✕</button>
       </div>
       <div class="modal-body">
@@ -304,7 +375,95 @@
   <!-- ===== TOAST ===== -->
   <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
-  <!-- Chart.js from CDN (free, open-source) -->
+  <!-- ===== US STORE / VENDOR DATALIST ===== -->
+  <datalist id="store-list">
+    <!-- Grocery & Warehouse -->
+    <option value="Walmart">
+    <option value="Target">
+    <option value="Costco">
+    <option value="Sam's Club">
+    <option value="Kroger">
+    <option value="Whole Foods">
+    <option value="Trader Joe's">
+    <option value="Publix">
+    <option value="ALDI">
+    <option value="Safeway">
+    <option value="Albertsons">
+    <option value="Meijer">
+    <option value="H-E-B">
+    <option value="Sprouts Farmers Market">
+    <option value="Wegmans">
+    <option value="WinCo Foods">
+    <option value="Food Lion">
+    <option value="Giant Food">
+    <option value="Stop & Shop">
+    <option value="ShopRite">
+    <!-- Pharmacy -->
+    <option value="CVS Pharmacy">
+    <option value="Walgreens">
+    <option value="Rite Aid">
+    <!-- Home & Hardware -->
+    <option value="Home Depot">
+    <option value="Lowe's">
+    <option value="IKEA">
+    <option value="Bed Bath & Beyond">
+    <option value="HomeGoods">
+    <!-- Clothing & Retail -->
+    <option value="Kohl's">
+    <option value="Macy's">
+    <option value="TJ Maxx">
+    <option value="Marshalls">
+    <option value="Ross">
+    <option value="Old Navy">
+    <option value="Nordstrom Rack">
+    <!-- Electronics -->
+    <option value="Best Buy">
+    <option value="Apple Store">
+    <option value="Micro Center">
+    <!-- Online -->
+    <option value="Amazon">
+    <!-- Food Delivery & Dining -->
+    <option value="DoorDash">
+    <option value="Uber Eats">
+    <option value="Grubhub">
+    <option value="Instacart">
+    <option value="McDonald's">
+    <option value="Chick-fil-A">
+    <option value="Starbucks">
+    <option value="Chipotle">
+    <option value="Subway">
+    <option value="Domino's">
+    <option value="Pizza Hut">
+    <option value="Panera Bread">
+    <option value="Taco Bell">
+    <option value="Wendy's">
+    <option value="Burger King">
+    <!-- Streaming & Subscriptions -->
+    <option value="Netflix">
+    <option value="Hulu">
+    <option value="Disney+">
+    <option value="HBO Max">
+    <option value="Spotify">
+    <option value="Apple TV+">
+    <option value="Amazon Prime">
+    <option value="Peacock">
+    <!-- Telecom & Utilities -->
+    <option value="Verizon">
+    <option value="AT&T">
+    <option value="T-Mobile">
+    <option value="Comcast / Xfinity">
+    <option value="Spectrum">
+    <option value="Cox">
+    <!-- Gas & Convenience -->
+    <option value="Shell">
+    <option value="ExxonMobil">
+    <option value="Chevron">
+    <option value="BP">
+    <option value="Wawa">
+    <option value="7-Eleven">
+    <option value="Marathon">
+  </datalist>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="script.js"></script>
 </body>
