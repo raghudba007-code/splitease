@@ -15,9 +15,9 @@
       <span class="brand-name">SplitEase</span>
     </div>
     <div class="header-actions">
-      <button class="btn-icon" id="export-btn" title="Export Data">📤 Export</button>
-      <button class="btn-icon" id="import-btn" title="Import Data">📥 Import</button>
-      <button class="btn-icon btn-icon-warn" id="reset-btn" title="Clear all data">🗑️ Clear Data</button>
+      <button class="btn-icon" id="export-btn">📤 Export</button>
+      <button class="btn-icon" id="import-btn">📥 Import</button>
+      <button class="btn-icon btn-icon-warn" id="reset-btn">🗑️ Clear Data</button>
       <input type="file" id="import-file" accept=".json" style="display:none">
     </div>
   </header>
@@ -58,6 +58,7 @@
         </div>
       </div>
 
+      <!-- Stat Cards -->
       <div class="stats-grid">
         <div class="stat-card stat-primary">
           <div class="stat-icon-wrap">💰</div>
@@ -89,6 +90,15 @@
         </div>
       </div>
 
+      <!-- Spending Insights Panel -->
+      <div class="card insights-card">
+        <h3 class="card-title">💡 Spending Insights</h3>
+        <div id="insights-section" class="insights-row">
+          <p class="empty-text">Add expenses to see insights.</p>
+        </div>
+      </div>
+
+      <!-- Charts -->
       <div class="charts-grid">
         <div class="card">
           <h3 class="card-title">Spending by Category</h3>
@@ -97,14 +107,23 @@
           </div>
           <div id="category-legend" class="chart-legend"></div>
         </div>
+
         <div class="card">
-          <h3 class="card-title">Monthly Spending (Last 6 Months)</h3>
+          <div class="chart-header">
+            <h3 class="card-title" id="spending-chart-title" style="margin-bottom:0">Spending Overview</h3>
+            <div class="period-toggle">
+              <button class="period-btn" data-period="daily">Daily</button>
+              <button class="period-btn active" data-period="monthly">Monthly</button>
+              <button class="period-btn" data-period="yearly">Yearly</button>
+            </div>
+          </div>
           <div class="chart-wrap chart-wrap-bar">
-            <canvas id="monthly-chart"></canvas>
+            <canvas id="spending-chart"></canvas>
           </div>
         </div>
       </div>
 
+      <!-- Recent Transactions -->
       <div class="card">
         <div class="card-row">
           <h3 class="card-title">Recent Transactions</h3>
@@ -132,15 +151,11 @@
           </div>
           <div class="filter-group">
             <label class="filter-label">Category</label>
-            <select id="filter-category" class="input">
-              <option value="">All</option>
-            </select>
+            <select id="filter-category" class="input"><option value="">All</option></select>
           </div>
           <div class="filter-group">
             <label class="filter-label">Group</label>
-            <select id="filter-group" class="input">
-              <option value="">All Groups</option>
-            </select>
+            <select id="filter-group" class="input"><option value="">All Groups</option></select>
           </div>
           <div class="filter-group">
             <label class="filter-label">From</label>
@@ -162,7 +177,7 @@
       <div class="section-header">
         <div>
           <h2 class="section-title">Groups</h2>
-          <p class="section-subtitle">Organize expenses by household, trip, or any shared context</p>
+          <p class="section-subtitle">Organize expenses — like Splitwise groups, with your chosen members</p>
         </div>
         <button class="btn btn-primary" id="add-group-btn">+ Create Group</button>
       </div>
@@ -190,7 +205,7 @@
         </div>
       </div>
       <div id="balance-summary" class="balance-grid"></div>
-      <div class="card" id="settlements-card">
+      <div class="card">
         <h3 class="card-title">💡 Suggested Settlements</h3>
         <p class="card-subtitle">Minimum transactions to clear all debts</p>
         <div id="settlements-list"></div>
@@ -205,11 +220,10 @@
     <div class="modal">
       <div class="modal-header">
         <h3 class="modal-title" id="expense-modal-title">Add Expense</h3>
-        <button class="modal-close" id="close-expense-modal" aria-label="Close">✕</button>
+        <button class="modal-close" id="close-expense-modal">✕</button>
       </div>
       <div class="modal-body">
         <form id="expense-form" autocomplete="off">
-
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Title <span class="req">*</span></label>
@@ -223,20 +237,16 @@
               </div>
             </div>
           </div>
-
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Paid By <span class="req">*</span></label>
-              <select id="exp-paid-by" class="input" required>
-                <option value="">Select member…</option>
-              </select>
+              <select id="exp-paid-by" class="input" required><option value="">Select member…</option></select>
             </div>
             <div class="form-group">
               <label class="form-label">Date <span class="req">*</span></label>
               <input type="date" id="exp-date" class="input" required>
             </div>
           </div>
-
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Category</label>
@@ -247,13 +257,10 @@
               <input type="text" id="exp-store" class="input" list="store-list" placeholder="e.g. Walmart, Target…">
             </div>
           </div>
-
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Group</label>
-              <select id="exp-group" class="input">
-                <option value="">No group (ungrouped)</option>
-              </select>
+              <select id="exp-group" class="input"><option value="">No group</option></select>
             </div>
             <div class="form-group">
               <label class="form-label">Notes</label>
@@ -261,13 +268,11 @@
             </div>
           </div>
 
-          <!-- Group member hint -->
           <div id="group-hint" class="group-hint" style="display:none">
             <span id="group-hint-text"></span>
-            <button type="button" class="btn-link" id="apply-group-members-btn">Apply group members to split →</button>
+            <button type="button" class="btn-link" id="apply-group-members-btn">Apply group members →</button>
           </div>
 
-          <!-- Split section -->
           <div class="split-section">
             <div class="split-header">
               <span class="form-label">Split Between</span>
@@ -283,7 +288,6 @@
               <span id="split-status" class="split-status"></span>
             </div>
           </div>
-
         </form>
       </div>
       <div class="modal-footer">
@@ -293,12 +297,12 @@
     </div>
   </div>
 
-  <!-- ===== GROUP MODAL ===== -->
+  <!-- ===== GROUP MODAL (Create & Edit) ===== -->
   <div class="modal-overlay" id="group-modal" role="dialog" aria-modal="true">
     <div class="modal">
       <div class="modal-header">
-        <h3 class="modal-title">Create Group</h3>
-        <button class="modal-close" id="close-group-modal" aria-label="Close">✕</button>
+        <h3 class="modal-title" id="group-modal-title">Create Group</h3>
+        <button class="modal-close" id="close-group-modal">✕</button>
       </div>
       <div class="modal-body">
         <form id="group-form" autocomplete="off">
@@ -317,7 +321,10 @@
             <div id="group-color-picker" class="color-picker"></div>
           </div>
           <div class="form-group">
-            <label class="form-label">Members in this group <span class="req">*</span></label>
+            <label class="form-label">
+              Members in this group <span class="req">*</span>
+              <span class="form-label-hint">— select who shares expenses in this group</span>
+            </label>
             <div id="group-member-picker" class="split-members-list"></div>
           </div>
         </form>
@@ -334,7 +341,7 @@
     <div class="modal modal-sm">
       <div class="modal-header">
         <h3 class="modal-title">Add Member</h3>
-        <button class="modal-close" id="close-member-modal" aria-label="Close">✕</button>
+        <button class="modal-close" id="close-member-modal">✕</button>
       </div>
       <div class="modal-body">
         <form id="member-form" autocomplete="off">
@@ -359,15 +366,15 @@
   <div class="modal-overlay" id="confirm-modal" role="dialog" aria-modal="true">
     <div class="modal modal-sm">
       <div class="modal-header">
-        <h3 class="modal-title" id="confirm-title">Confirm Action</h3>
-        <button class="modal-close" id="close-confirm-modal" aria-label="Close">✕</button>
+        <h3 class="modal-title" id="confirm-title">Confirm</h3>
+        <button class="modal-close" id="close-confirm-modal">✕</button>
       </div>
       <div class="modal-body">
         <p id="confirm-message" class="confirm-text">Are you sure?</p>
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" id="cancel-confirm-btn">Cancel</button>
-        <button class="btn btn-danger" id="confirm-ok-btn">Delete</button>
+        <button class="btn btn-danger" id="confirm-ok-btn">Confirm</button>
       </div>
     </div>
   </div>
@@ -375,93 +382,34 @@
   <!-- ===== TOAST ===== -->
   <div id="toast" class="toast" role="alert" aria-live="polite"></div>
 
-  <!-- ===== US STORE / VENDOR DATALIST ===== -->
+  <!-- ===== US STORE DATALIST ===== -->
   <datalist id="store-list">
-    <!-- Grocery & Warehouse -->
-    <option value="Walmart">
-    <option value="Target">
-    <option value="Costco">
-    <option value="Sam's Club">
-    <option value="Kroger">
-    <option value="Whole Foods">
-    <option value="Trader Joe's">
-    <option value="Publix">
-    <option value="ALDI">
-    <option value="Safeway">
-    <option value="Albertsons">
-    <option value="Meijer">
-    <option value="H-E-B">
-    <option value="Sprouts Farmers Market">
-    <option value="Wegmans">
-    <option value="WinCo Foods">
-    <option value="Food Lion">
-    <option value="Giant Food">
-    <option value="Stop & Shop">
-    <option value="ShopRite">
-    <!-- Pharmacy -->
-    <option value="CVS Pharmacy">
-    <option value="Walgreens">
-    <option value="Rite Aid">
-    <!-- Home & Hardware -->
-    <option value="Home Depot">
-    <option value="Lowe's">
-    <option value="IKEA">
-    <option value="Bed Bath & Beyond">
-    <option value="HomeGoods">
-    <!-- Clothing & Retail -->
-    <option value="Kohl's">
-    <option value="Macy's">
-    <option value="TJ Maxx">
-    <option value="Marshalls">
-    <option value="Ross">
-    <option value="Old Navy">
-    <option value="Nordstrom Rack">
-    <!-- Electronics -->
-    <option value="Best Buy">
-    <option value="Apple Store">
-    <option value="Micro Center">
-    <!-- Online -->
-    <option value="Amazon">
-    <!-- Food Delivery & Dining -->
-    <option value="DoorDash">
-    <option value="Uber Eats">
-    <option value="Grubhub">
-    <option value="Instacart">
-    <option value="McDonald's">
-    <option value="Chick-fil-A">
-    <option value="Starbucks">
-    <option value="Chipotle">
-    <option value="Subway">
-    <option value="Domino's">
-    <option value="Pizza Hut">
-    <option value="Panera Bread">
-    <option value="Taco Bell">
-    <option value="Wendy's">
-    <option value="Burger King">
-    <!-- Streaming & Subscriptions -->
-    <option value="Netflix">
-    <option value="Hulu">
-    <option value="Disney+">
-    <option value="HBO Max">
-    <option value="Spotify">
-    <option value="Apple TV+">
-    <option value="Amazon Prime">
-    <option value="Peacock">
-    <!-- Telecom & Utilities -->
-    <option value="Verizon">
-    <option value="AT&T">
-    <option value="T-Mobile">
-    <option value="Comcast / Xfinity">
-    <option value="Spectrum">
-    <option value="Cox">
-    <!-- Gas & Convenience -->
-    <option value="Shell">
-    <option value="ExxonMobil">
-    <option value="Chevron">
-    <option value="BP">
-    <option value="Wawa">
-    <option value="7-Eleven">
-    <option value="Marathon">
+    <option value="Walmart"><option value="Target"><option value="Costco">
+    <option value="Sam's Club"><option value="Kroger"><option value="Whole Foods">
+    <option value="Trader Joe's"><option value="Publix"><option value="ALDI">
+    <option value="Safeway"><option value="Albertsons"><option value="Meijer">
+    <option value="H-E-B"><option value="Sprouts Farmers Market"><option value="Wegmans">
+    <option value="WinCo Foods"><option value="Food Lion"><option value="Giant Food">
+    <option value="Stop & Shop"><option value="ShopRite">
+    <option value="CVS Pharmacy"><option value="Walgreens"><option value="Rite Aid">
+    <option value="Home Depot"><option value="Lowe's"><option value="IKEA">
+    <option value="Bed Bath & Beyond"><option value="HomeGoods">
+    <option value="Kohl's"><option value="Macy's"><option value="TJ Maxx">
+    <option value="Marshalls"><option value="Ross"><option value="Old Navy">
+    <option value="Best Buy"><option value="Apple Store"><option value="Micro Center">
+    <option value="Amazon"><option value="DoorDash"><option value="Uber Eats">
+    <option value="Grubhub"><option value="Instacart">
+    <option value="McDonald's"><option value="Chick-fil-A"><option value="Starbucks">
+    <option value="Chipotle"><option value="Subway"><option value="Domino's">
+    <option value="Pizza Hut"><option value="Panera Bread"><option value="Taco Bell">
+    <option value="Wendy's"><option value="Burger King">
+    <option value="Netflix"><option value="Hulu"><option value="Disney+">
+    <option value="HBO Max"><option value="Spotify"><option value="Apple TV+">
+    <option value="Amazon Prime"><option value="Peacock">
+    <option value="Verizon"><option value="AT&T"><option value="T-Mobile">
+    <option value="Comcast / Xfinity"><option value="Spectrum"><option value="Cox">
+    <option value="Shell"><option value="ExxonMobil"><option value="Chevron">
+    <option value="BP"><option value="Wawa"><option value="7-Eleven">
   </datalist>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
