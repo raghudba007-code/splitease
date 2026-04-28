@@ -7,14 +7,31 @@
 // ────────────────────────────────────────────────────────────
 
 const CATEGORIES = [
-  { id: 'food',          name: 'Food & Drinks',  icon: '🍔', color: '#f59e0b' },
-  { id: 'home',          name: 'Home',            icon: '🏠', color: '#6366f1' },
-  { id: 'transport',     name: 'Transport',       icon: '🚗', color: '#10b981' },
-  { id: 'entertainment', name: 'Entertainment',   icon: '🎮', color: '#ec4899' },
-  { id: 'travel',        name: 'Travel',          icon: '✈️', color: '#3b82f6' },
-  { id: 'healthcare',    name: 'Healthcare',      icon: '💊', color: '#ef4444' },
-  { id: 'utilities',     name: 'Utilities',       icon: '⚡', color: '#8b5cf6' },
-  { id: 'other',         name: 'Other',           icon: '📦', color: '#64748b' },
+  // ── Food & Home ──
+  { id: 'food',          name: 'Food & Drinks',    icon: '🍔', color: '#f59e0b' },
+  { id: 'groceries',     name: 'Groceries',         icon: '🛒', color: '#22c55e' },
+  { id: 'home',          name: 'Home / Household',  icon: '🏠', color: '#6366f1' },
+  { id: 'rent',          name: 'Rent',              icon: '🏘️', color: '#a855f7' },
+  // ── Bills ──
+  { id: 'electricity',   name: 'Electricity Bill',  icon: '💡', color: '#eab308' },
+  { id: 'gas',           name: 'Gas Bill',          icon: '🔥', color: '#f97316' },
+  { id: 'mobile',        name: 'Mobile / Phone',    icon: '📱', color: '#06b6d4' },
+  { id: 'utilities',     name: 'Water / Utilities', icon: '⚡', color: '#8b5cf6' },
+  { id: 'credit_card',   name: 'Credit Card Bill',  icon: '💳', color: '#f43f5e' },
+  // ── Transport ──
+  { id: 'transport',     name: 'Transport',         icon: '🚗', color: '#10b981' },
+  { id: 'car_emi',       name: 'Car EMI / Loan',    icon: '🚙', color: '#475569' },
+  // ── Insurance ──
+  { id: 'insurance',     name: 'Insurance',         icon: '🛡️', color: '#0ea5e9' },
+  // ── Lifestyle ──
+  { id: 'entertainment', name: 'Entertainment',     icon: '🎮', color: '#ec4899' },
+  { id: 'subscriptions', name: 'Subscriptions',     icon: '📺', color: '#d946ef' },
+  { id: 'shopping',      name: 'Shopping',          icon: '🛍️', color: '#14b8a6' },
+  { id: 'travel',        name: 'Travel',            icon: '✈️', color: '#3b82f6' },
+  // ── Health ──
+  { id: 'healthcare',    name: 'Healthcare',        icon: '💊', color: '#ef4444' },
+  // ── Other ──
+  { id: 'other',         name: 'Other',             icon: '📦', color: '#64748b' },
 ];
 
 const MEMBER_COLORS = [
@@ -108,15 +125,15 @@ function getSampleExpenses() {
 
   return [
     { id: 'exp1', title: 'Grocery Shopping', amount: 85.50, paidBy: 'alex',
-      date: d(15), category: 'food', store: 'Walmart', groupId: 'grp-home', notes: 'Weekly groceries',
+      date: d(15), category: 'groceries', store: 'Walmart', groupId: 'grp-home', notes: 'Weekly groceries',
       splitType: 'equal', splits: ['alex','jordan','sam'].map(id => ({ memberId: id, amount: +(85.50/3).toFixed(2) })) },
 
     { id: 'exp2', title: 'Netflix Subscription', amount: 15.99, paidBy: 'jordan',
-      date: d(1), category: 'entertainment', store: 'Netflix', groupId: 'grp-fun', notes: '',
+      date: d(1), category: 'subscriptions', store: 'Netflix', groupId: 'grp-fun', notes: '',
       splitType: 'equal', splits: ['alex','jordan'].map(id => ({ memberId: id, amount: +(15.99/2).toFixed(2) })) },
 
     { id: 'exp3', title: 'Electricity Bill', amount: 120.00, paidBy: 'sam',
-      date: d(10), category: 'utilities', store: 'Comcast / Xfinity', groupId: 'grp-home', notes: 'Monthly bill',
+      date: d(10), category: 'electricity', store: 'Duke Energy', groupId: 'grp-home', notes: 'Monthly bill',
       splitType: 'equal', splits: ['alex','jordan','sam'].map(id => ({ memberId: id, amount: 40.00 })) },
 
     { id: 'exp4', title: 'Uber to Airport', amount: 45.00, paidBy: 'casey',
@@ -132,8 +149,8 @@ function getSampleExpenses() {
       date: d(5), category: 'utilities', store: 'Spectrum', groupId: 'grp-home', notes: '',
       splitType: 'equal', splits: ['alex','jordan','sam'].map(id => ({ memberId: id, amount: +(79.99/3).toFixed(2) })) },
 
-    { id: 'exp7', title: 'Cleaning Supplies', amount: 65.00, paidBy: 'sam',
-      date: d(8), category: 'home', store: 'Target', groupId: 'grp-home', notes: '',
+    { id: 'exp7', title: 'Mobile Phone Bills', amount: 65.00, paidBy: 'sam',
+      date: d(8), category: 'mobile', store: 'T-Mobile', groupId: 'grp-home', notes: '',
       splitType: 'equal', splits: ['alex','jordan','sam'].map(id => ({ memberId: id, amount: +(65/3).toFixed(2) })) },
 
     { id: 'exp8', title: 'Movie Tickets', amount: 48.00, paidBy: 'alex',
@@ -142,10 +159,10 @@ function getSampleExpenses() {
 
     // Previous month data so insights comparison works
     { id: 'exp9', title: 'Last Month Groceries', amount: 72.00, paidBy: 'alex',
-      date: pd(14), category: 'food', store: 'Walmart', groupId: 'grp-home', notes: '',
+      date: pd(14), category: 'groceries', store: 'Walmart', groupId: 'grp-home', notes: '',
       splitType: 'equal', splits: ['alex','jordan','sam'].map(id => ({ memberId: id, amount: 24.00 })) },
-    { id: 'exp10', title: 'Last Month Utilities', amount: 95.00, paidBy: 'sam',
-      date: pd(8), category: 'utilities', store: 'Spectrum', groupId: 'grp-home', notes: '',
+    { id: 'exp10', title: 'Last Month Electricity', amount: 95.00, paidBy: 'sam',
+      date: pd(8), category: 'electricity', store: 'Duke Energy', groupId: 'grp-home', notes: '',
       splitType: 'equal', splits: ['alex','jordan','sam'].map(id => ({ memberId: id, amount: +(95/3).toFixed(2) })) },
     { id: 'exp11', title: 'Last Month Dining', amount: 120.00, paidBy: 'jordan',
       date: pd(20), category: 'food', store: 'Panera Bread', groupId: 'grp-fun', notes: '',
@@ -682,7 +699,8 @@ function updateGroupHint(groupId) {
   if (!groupId) { hint.style.display = 'none'; return; }
   const g = getGroup(groupId);
   if (!g) { hint.style.display = 'none'; return; }
-  text.textContent = `${g.name}: ${g.memberIds.map(id => getMember(id).name).join(', ')}`;
+  const names = g.memberIds.map(id => getMember(id).name).join(', ');
+  text.textContent = `Split applies to: ${names}`;
   hint.style.display = 'flex';
 }
 
@@ -832,9 +850,12 @@ function renderGroups() {
     const expenses = state.expenses.filter(e => e.groupId === g.id);
     const total    = expenses.reduce((s, e) => s + e.amount, 0);
 
-    const avatars = members.slice(0, 6).map(m =>
-      `<span class="mini-avatar" style="background:${m.color}" title="${esc(m.name)}">${esc(m.initials)}</span>`
-    ).join('') + (members.length > 6 ? `<span class="mini-avatar more">+${members.length-6}</span>` : '');
+    const memberPills = members.map(m =>
+      `<span class="group-member-pill">
+        <span class="group-pill-dot" style="background:${m.color}"></span>
+        ${esc(m.name)}
+      </span>`
+    ).join('');
 
     return `
       <div class="group-card card">
@@ -847,10 +868,10 @@ function renderGroups() {
         </div>
         <div class="group-card-body">
           ${g.description ? `<p class="group-desc">${esc(g.description)}</p>` : ''}
-          <div class="group-members-row">${avatars}</div>
+          <div class="group-members-label">Members (${members.length})</div>
+          <div class="group-member-pills">${memberPills}</div>
           <div class="group-stats-row">
-            <span>${members.length} member${members.length!==1?'s':''}</span>
-            <span>•</span><span>${expenses.length} expense${expenses.length!==1?'s':''}</span>
+            <span>${expenses.length} expense${expenses.length!==1?'s':''}</span>
             <span>•</span><span class="group-total">${fmt(total)}</span>
           </div>
           <button class="btn btn-ghost group-view-btn" onclick="filterByGroup('${g.id}')">View Expenses →</button>
@@ -1248,7 +1269,14 @@ function initEvents() {
   document.getElementById('exp-amount').addEventListener('input', () => {
     if (state.splitType === 'equal') refreshEqualShares(); else refreshCustomTotal();
   });
-  document.getElementById('exp-group').addEventListener('change', e => updateGroupHint(e.target.value));
+  document.getElementById('exp-group').addEventListener('change', e => {
+    updateGroupHint(e.target.value);
+    if (!state.editingExpenseId) {
+      // In add mode: auto-apply group members so only that group's members appear
+      if (e.target.value) applyGroupMembers();
+      else renderSplitMembers(null);   // no group → show all members
+    }
+  });
   document.getElementById('apply-group-members-btn').addEventListener('click', applyGroupMembers);
 
   // Split list delegation
