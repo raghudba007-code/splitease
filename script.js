@@ -83,9 +83,9 @@ function loadData() {
   if (!sg) Store.set(STORAGE.GROUPS,   state.groups);
 }
 
-function saveMembers()  { Store.set(STORAGE.MEMBERS,  state.members); }
-function saveExpenses() { Store.set(STORAGE.EXPENSES, state.expenses); }
-function saveGroups()   { Store.set(STORAGE.GROUPS,   state.groups); }
+function saveMembers()  { Store.set(STORAGE.MEMBERS,  state.members);  writeDataToFile(); }
+function saveExpenses() { Store.set(STORAGE.EXPENSES, state.expenses); writeDataToFile(); }
+function saveGroups()   { Store.set(STORAGE.GROUPS,   state.groups);   writeDataToFile(); }
 
 // ────────────────────────────────────────────────────────────
 // SAMPLE DATA
@@ -1315,6 +1315,12 @@ function initEvents() {
   document.getElementById('cancel-confirm-btn').addEventListener('click', () => closeModal('confirm-modal'));
   document.getElementById('confirm-ok-btn').addEventListener('click', executeConfirmAction);
 
+  // ── File storage modal ──
+  document.getElementById('file-badge').addEventListener('click', openFileModal);
+  document.getElementById('close-file-modal').addEventListener('click', () => closeModal('file-modal'));
+  document.getElementById('pick-existing-file-btn').addEventListener('click', () => pickFile(false));
+  document.getElementById('create-new-file-btn').addEventListener('click', () => pickFile(true));
+
   // ── Header buttons ──
   document.getElementById('export-btn').addEventListener('click', exportData);
   document.getElementById('import-btn').addEventListener('click', () => document.getElementById('import-file').click());
@@ -1349,13 +1355,206 @@ function initEvents() {
 }
 
 // ────────────────────────────────────────────────────────────
+// LOCAL FILE STORAGE  (File System Access API)
+// ────────────────────────────────────────────────────────────
+
+let fsHandle = null; // active FileSystemFileHandle
+
+function supportsFS() { return 'showOpenFilePicker' in window; }
+
+// ── IndexedDB helpers (store the file handle across sessions) ──
+
+function _openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open('splitease-fs', 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore('handles');
+    req.onsuccess  = e => res(e.target.result);
+    req.onerror    = ()  => rej(req.error);
+  });
+}
+
+async function _storeHandle(handle) {
+  try {
+    const db = await _openDB();
+    const tx = db.transaction('handles', 'readwrite');
+    tx.objectStore('handles').put(handle, 'dataFile');
+    return new Promise((res, rej) => { tx.oncomplete = res; tx.onerror = rej; });
+  } catch { /* ignore */ }
+}
+
+async function _getStoredHandle() {
+  try {
+    const db  = await _openDB();
+    const tx  = db.transaction('handles', 'readonly');
+    const req = tx.objectStore('handles').get('dataFile');
+    return new Promise(res => { req.onsuccess = () => res(req.result || null); req.onerror = () => res(null); });
+  } catch { return null; }
+}
+
+// ── File read / write ──
+
+async function _verifyPermission(handle) {
+  const opts = { mode: 'readwrite' };
+  if ((await handle.queryPermission(opts)) === 'granted') return true;
+  return (await handle.requestPermission(opts)) === 'granted';
+}
+
+async function writeDataToFile() {
+  if (!fsHandle) return;
+  try {
+    if (!(await _verifyPermission(fsHandle))) return;
+    const payload = JSON.stringify({
+      version: '1.0', savedAt: new Date().toISOString(),
+      members: state.members, expenses: state.expenses, groups: state.groups,
+    }, null, 2);
+    const writable = await fsHandle.createWritable();
+    await writable.write(payload);
+    await writable.close();
+    updateFileBadge();
+  } catch (err) { console.warn('File write failed:', err); }
+}
+
+async function _readFromHandle(handle) {
+  try {
+    const file = await handle.getFile();
+    return JSON.parse(await file.text());
+  } catch { return null; }
+}
+
+// ── Pick / create file ──
+
+async function pickFile(create = false) {
+  if (!supportsFS()) {
+    document.getElementById('fs-not-supported').style.display = 'block';
+    return;
+  }
+  try {
+    let handle;
+    if (create) {
+      handle = await window.showSaveFilePicker({
+        suggestedName: 'splitease-data.json',
+        types: [{ description: 'JSON Data File', accept: { 'application/json': ['.json'] } }],
+      });
+    } else {
+      [handle] = await window.showOpenFilePicker({
+        types: [{ description: 'JSON Data File', accept: { 'application/json': ['.json'] } }],
+        multiple: false,
+      });
+    }
+
+    fsHandle = handle;
+    await _storeHandle(handle);
+
+    if (!create) {
+      // Load data from the chosen file
+      const data = await _readFromHandle(handle);
+      if (data && Array.isArray(data.members) && Array.isArray(data.expenses)) {
+        state.members  = data.members;
+        state.expenses = data.expenses;
+        state.groups   = data.groups || [];
+        saveMembers(); saveExpenses(); saveGroups(); // sync localStorage backup
+        renderDashboard();
+        showToast(`Loaded from "${handle.name}" ✓`, 'success');
+      } else {
+        // New / empty file — write current data into it
+        await writeDataToFile();
+        showToast(`New file "${handle.name}" created ✓`, 'success');
+      }
+    } else {
+      await writeDataToFile(); // write current data into new file
+      showToast(`Saving to "${handle.name}" ✓`, 'success');
+    }
+
+    updateFileBadge();
+    closeModal('file-modal');
+  } catch (err) {
+    if (err.name !== 'AbortError') showToast('Could not access file.', 'error');
+  }
+}
+
+// ── Badge + status panel ──
+
+function updateFileBadge() {
+  const btn = document.getElementById('file-badge');
+  if (!btn) return;
+  if (fsHandle) {
+    btn.textContent = `📁 ${fsHandle.name}`;
+    btn.classList.add('file-badge-active');
+    btn.title = `Auto-saving to: ${fsHandle.name}\nClick to change file`;
+  } else {
+    btn.textContent = '💾 Browser Only';
+    btn.classList.remove('file-badge-active');
+    btn.title = 'Data saved in browser only — click to save to a local file';
+  }
+}
+
+function openFileModal() {
+  const info = document.getElementById('file-status-info');
+  if (!supportsFS()) {
+    document.getElementById('fs-not-supported').style.display = 'block';
+    document.querySelector('.file-action-row').style.display = 'none';
+  } else {
+    document.getElementById('fs-not-supported').style.display = 'none';
+    document.querySelector('.file-action-row').style.display = 'flex';
+  }
+  if (info) {
+    info.innerHTML = fsHandle
+      ? `<div class="file-status-box file-status-ok">
+           ✅ Auto-saving to <strong>${esc(fsHandle.name)}</strong><br>
+           <span style="font-size:12px">Every change saves instantly to this file on your laptop.</span>
+         </div>`
+      : `<div class="file-status-box file-status-warn">
+           ⚠️ Currently saved in browser storage only.<br>
+           <span style="font-size:12px">Data will be lost if you clear browser cache or use a different browser.</span>
+         </div>`;
+  }
+  openModal('file-modal');
+}
+
+// ── Auto-load on startup ──
+
+async function initFileStorage() {
+  updateFileBadge(); // show default state immediately
+  if (!supportsFS()) return;
+
+  const handle = await _getStoredHandle();
+  if (!handle) return;
+
+  try {
+    // Only auto-load if permission already granted (no popup on startup)
+    const perm = await handle.queryPermission({ mode: 'readwrite' });
+    if (perm !== 'granted') {
+      // Show a subtle prompt to reconnect the file
+      const btn = document.getElementById('file-badge');
+      if (btn) { btn.textContent = '📁 Reconnect File'; btn.title = 'Click to reconnect your saved data file'; }
+      fsHandle = handle; // keep handle so clicking badge will request permission
+      return;
+    }
+    fsHandle = handle;
+    const data = await _readFromHandle(handle);
+    if (data && Array.isArray(data.members) && Array.isArray(data.expenses)) {
+      state.members  = data.members;
+      state.expenses = data.expenses;
+      state.groups   = data.groups || [];
+      Store.set(STORAGE.MEMBERS,  state.members);
+      Store.set(STORAGE.EXPENSES, state.expenses);
+      Store.set(STORAGE.GROUPS,   state.groups);
+      renderDashboard();
+    }
+  } catch (err) { console.warn('Auto-load failed:', err); }
+
+  updateFileBadge();
+}
+
+// ────────────────────────────────────────────────────────────
 // INIT
 // ────────────────────────────────────────────────────────────
 
-function init() {
-  loadData();
+async function init() {
+  loadData();       // immediate: load from localStorage
   initEvents();
   renderDashboard();
+  await initFileStorage(); // async: silently load from file if already linked
 }
 
 document.addEventListener('DOMContentLoaded', init);

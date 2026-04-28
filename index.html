@@ -15,6 +15,7 @@
       <span class="brand-name">SplitEase</span>
     </div>
     <div class="header-actions">
+      <button class="btn-icon file-status-btn" id="file-badge" title="Click to save data to a local file on your laptop">💾 Browser Only</button>
       <button class="btn-icon" id="export-btn">📤 Export</button>
       <button class="btn-icon" id="import-btn">📥 Import</button>
       <button class="btn-icon btn-icon-warn" id="reset-btn">🗑️ Clear Data</button>
@@ -373,6 +374,31 @@
       <div class="modal-footer">
         <button class="btn btn-ghost" id="cancel-member-btn">Cancel</button>
         <button class="btn btn-primary" id="save-member-btn">Add Member</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FILE STORAGE MODAL ===== -->
+  <div class="modal-overlay" id="file-modal" role="dialog" aria-modal="true">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h3 class="modal-title">💾 Local File Storage</h3>
+        <button class="modal-close" id="close-file-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:14px;color:var(--text-muted);line-height:1.6;margin-bottom:14px">
+          Save your data to a <strong>.json file on your laptop</strong>. Every change auto-saves instantly.
+          Works across browsers, incognito, and cache clears.
+        </p>
+        <div id="file-status-info"></div>
+        <div class="file-action-row">
+          <button class="btn btn-primary" id="pick-existing-file-btn">📂 Open existing data file</button>
+          <button class="btn btn-ghost" id="create-new-file-btn">📄 Create new data file</button>
+        </div>
+        <p id="fs-not-supported" class="fs-warn" style="display:none">
+          ⚠️ Your browser doesn't support direct file access. Use <strong>Chrome</strong> or <strong>Edge</strong> for this feature.
+          You can still use Export/Import as a manual backup.
+        </p>
       </div>
     </div>
   </div>

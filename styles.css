@@ -710,6 +710,37 @@ select.input { -webkit-appearance: none; appearance: none; background-image: url
 .btn-icon-warn { background: rgba(239,68,68,.15); }
 .btn-icon-warn:hover { background: rgba(239,68,68,.3); }
 
+/* ── File storage badge ── */
+.file-status-btn {
+  font-size: 12px;
+  border: 1px solid rgba(255,255,255,.25);
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.file-badge-active {
+  background: rgba(16,185,129,.25) !important;
+  border-color: rgba(16,185,129,.5) !important;
+}
+
+/* ── File modal content ── */
+.file-action-row { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.file-status-box {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 4px;
+}
+.file-status-ok   { background: var(--success-light); color: #065f46; border: 1px solid #a7f3d0; }
+.file-status-warn { background: var(--warning-light); color: #92400e; border: 1px solid #fde68a; }
+.fs-warn { font-size: 13px; color: var(--danger); margin-top: 14px; line-height: 1.6; }
+
+@media (max-width: 600px) {
+  .file-status-btn { display: none; }
+}
+
 /* ── Group hint (inside expense modal) ── */
 .group-hint {
   display: flex;
