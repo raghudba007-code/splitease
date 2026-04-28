@@ -68,8 +68,101 @@ const state = {
 
 const Store = {
   get(key)       { try { return JSON.parse(localStorage.getItem(key)); } catch { return null; } },
-  set(key, data) { try { localStorage.setItem(key, JSON.stringify(data)); } catch { showToast('Storage error', 'error'); } },
+  set(key, data) { try { localStorage.setItem(key, JSON.stringify(data)); } catch { showToast('Storage full – export your data to free space.', 'error'); } },
 };
+
+// ────────────────────────────────────────────────────────────
+// IMAGE COMPRESSION
+// ────────────────────────────────────────────────────────────
+
+// Pending receipt for the currently open expense modal
+let pendingReceipt = null; // base64 JPEG string | null
+
+function compressImage(file, maxW = 1200, maxH = 1600, quality = 0.78) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = evt => {
+      const img = new Image();
+      img.onerror = reject;
+      img.onload = () => {
+        let { width: w, height: h } = img;
+        if (w > maxW || h > maxH) {
+          const ratio = Math.min(maxW / w, maxH / h);
+          w = Math.round(w * ratio);
+          h = Math.round(h * ratio);
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width  = w;
+        canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve({ dataUrl: canvas.toDataURL('image/jpeg', quality), w, h });
+      };
+      img.src = evt.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function fmtBytes(b) {
+  if (b < 1024)       return b + ' B';
+  if (b < 1024 * 1024) return (b / 1024).toFixed(0) + ' KB';
+  return (b / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+async function handleReceiptFile(file) {
+  if (!file || !file.type.startsWith('image/')) {
+    showToast('Please select an image file.', 'error');
+    return;
+  }
+  const status = document.getElementById('receipt-compress-status');
+  status.style.display = 'block';
+  document.getElementById('receipt-empty').style.display = 'none';
+  document.getElementById('receipt-preview-wrap').style.display = 'none';
+
+  try {
+    const origSize = file.size;
+    const { dataUrl, w, h } = await compressImage(file);
+    // base64 string length ≈ 4/3 * bytes
+    const compSize = Math.round((dataUrl.length - 'data:image/jpeg;base64,'.length) * 3 / 4);
+    const saved    = Math.round((1 - compSize / origSize) * 100);
+
+    pendingReceipt = dataUrl;
+    status.style.display = 'none';
+
+    document.getElementById('receipt-preview-img').src = dataUrl;
+    document.getElementById('receipt-size-label').textContent =
+      `${w}×${h}px · ${fmtBytes(compSize)} (${saved}% smaller than original)`;
+    document.getElementById('receipt-preview-wrap').style.display = 'flex';
+  } catch {
+    status.style.display = 'none';
+    document.getElementById('receipt-empty').style.display = 'flex';
+    showToast('Could not compress image.', 'error');
+  }
+}
+
+function initReceiptUI(existingDataUrl) {
+  pendingReceipt = existingDataUrl || null;
+  document.getElementById('receipt-compress-status').style.display = 'none';
+  document.getElementById('receipt-input').value = '';
+
+  if (existingDataUrl) {
+    document.getElementById('receipt-preview-img').src = existingDataUrl;
+    document.getElementById('receipt-size-label').textContent = 'Saved photo';
+    document.getElementById('receipt-empty').style.display = 'none';
+    document.getElementById('receipt-preview-wrap').style.display = 'flex';
+  } else {
+    document.getElementById('receipt-empty').style.display = 'flex';
+    document.getElementById('receipt-preview-wrap').style.display = 'none';
+  }
+}
+
+function viewReceipt(expId) {
+  const exp = state.expenses.find(e => e.id === expId);
+  if (!exp || !exp.receipt) return;
+  document.getElementById('receipt-view-img').src = exp.receipt;
+  openModal('receipt-modal');
+}
 
 function loadData() {
   const sm = Store.get(STORAGE.MEMBERS);
@@ -594,11 +687,18 @@ function expenseItemHTML(expense, showActions) {
     `<span class="mini-avatar" style="background:${m.color}" title="${esc(m.name)}">${esc(m.initials)}</span>`
   ).join('') + (participants.length > 5 ? `<span class="mini-avatar more">+${participants.length-5}</span>` : '');
 
-  const storeBadge = expense.store ? `<span class="store-badge">🏪 ${esc(expense.store)}</span>` : '';
-  const groupBadge = group ? `<span class="group-badge" style="background:${group.color}20;color:${group.color}">🏠 ${esc(group.name)}</span>` : '';
+  const storeBadge   = expense.store   ? `<span class="store-badge">🏪 ${esc(expense.store)}</span>` : '';
+  const groupBadge   = group           ? `<span class="group-badge" style="background:${group.color}20;color:${group.color}">🏠 ${esc(group.name)}</span>` : '';
+  const receiptBadge = expense.receipt ? `<span class="receipt-badge">📷 receipt</span>` : '';
+
+  const receiptThumb = expense.receipt && showActions
+    ? `<div class="receipt-thumb-wrap" onclick="viewReceipt('${expense.id}')" title="View bill photo">
+         <img src="${expense.receipt}" class="receipt-thumb" alt="Receipt">
+       </div>` : '';
 
   const actions = showActions ? `
     <div class="expense-actions">
+      ${expense.receipt ? `<button class="btn-action receipt-view" onclick="viewReceipt('${expense.id}')" title="View receipt">📷</button>` : ''}
       <button class="btn-action edit"   onclick="openEditExpenseModal('${expense.id}')" title="Edit">✏️</button>
       <button class="btn-action delete" onclick="confirmDelete('expense','${expense.id}')" title="Delete">🗑️</button>
     </div>` : '';
@@ -606,13 +706,14 @@ function expenseItemHTML(expense, showActions) {
   return `
     <div class="expense-item">
       <div class="expense-cat-dot" style="background:${cat.color}"></div>
+      ${receiptThumb}
       <div class="expense-info">
         <div class="expense-title">${esc(expense.title)}</div>
         <div class="expense-meta">
           <span class="expense-date">${fmtDate(expense.date)}</span>
           <span class="cat-badge" style="background:${cat.color}20;color:${cat.color}">${cat.icon} ${cat.name}</span>
           <span class="payer-info">Paid by <strong>${esc(payer.name)}</strong></span>
-          ${storeBadge}${groupBadge}
+          ${storeBadge}${groupBadge}${receiptBadge}
         </div>
         <div class="expense-participants">${avatars}</div>
       </div>
@@ -654,6 +755,7 @@ function openAddExpenseModal() {
   populateExpenseFormSelects('', 'food', '', '');
   renderSplitMembers(null);
   document.getElementById('group-hint').style.display = 'none';
+  initReceiptUI(null);
   openModal('expense-modal');
 }
 
@@ -672,6 +774,7 @@ function openEditExpenseModal(id) {
   populateExpenseFormSelects(exp.paidBy, exp.category, exp.groupId || '', exp.store || '');
   renderSplitMembers(exp.splits);
   updateGroupHint(exp.groupId || '');
+  initReceiptUI(exp.receipt || null);
   openModal('expense-modal');
 }
 
@@ -816,7 +919,7 @@ function saveExpense() {
       return showToast('Custom amounts must sum to the total.', 'error');
   }
 
-  const expense = { id: state.editingExpenseId || generateId(), title, amount, paidBy, date, category, store, groupId, notes, splitType: state.splitType, splits };
+  const expense = { id: state.editingExpenseId || generateId(), title, amount, paidBy, date, category, store, groupId, notes, splitType: state.splitType, splits, receipt: pendingReceipt || null };
 
   if (state.editingExpenseId) {
     const idx = state.expenses.findIndex(e => e.id === state.editingExpenseId);
@@ -1295,6 +1398,19 @@ function initEvents() {
   document.getElementById('split-members-list').addEventListener('input', e => {
     if (e.target.classList.contains('custom-split-input')) refreshCustomTotal();
   });
+
+  // ── Receipt upload ──
+  const receiptInput = document.getElementById('receipt-input');
+  receiptInput.addEventListener('change', e => { if (e.target.files[0]) handleReceiptFile(e.target.files[0]); e.target.value = ''; });
+  document.getElementById('receipt-empty').addEventListener('click', () => receiptInput.click());
+  document.getElementById('receipt-change-btn').addEventListener('click', () => receiptInput.click());
+  document.getElementById('receipt-remove-btn').addEventListener('click', () => {
+    pendingReceipt = null;
+    document.getElementById('receipt-preview-wrap').style.display = 'none';
+    document.getElementById('receipt-empty').style.display = 'flex';
+  });
+  // Receipt viewer modal
+  document.getElementById('close-receipt-modal').addEventListener('click', () => closeModal('receipt-modal'));
 
   // ── Group modal ──
   document.getElementById('add-group-btn').addEventListener('click', openAddGroupModal);

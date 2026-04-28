@@ -284,6 +284,29 @@
             </div>
           </div>
 
+          <!-- Receipt / Bill Photo -->
+          <div class="receipt-section">
+            <label class="form-label">Bill / Receipt Photo <span class="form-label-hint">— optional, auto-compressed</span></label>
+            <input type="file" id="receipt-input" accept="image/*" capture="environment" style="display:none">
+            <div id="receipt-empty" class="receipt-dropzone" onclick="document.getElementById('receipt-input').click()">
+              <span class="receipt-drop-icon">📷</span>
+              <span>Tap to take photo or choose from gallery</span>
+            </div>
+            <div id="receipt-preview-wrap" class="receipt-preview-wrap" style="display:none">
+              <img id="receipt-preview-img" class="receipt-preview-img" src="" alt="Receipt preview">
+              <div class="receipt-preview-info">
+                <span id="receipt-size-label" class="receipt-size-label"></span>
+                <div class="receipt-preview-actions">
+                  <button type="button" class="btn btn-ghost btn-sm" id="receipt-change-btn">🔄 Change</button>
+                  <button type="button" class="btn btn-sm receipt-remove-btn" id="receipt-remove-btn">✕ Remove</button>
+                </div>
+              </div>
+            </div>
+            <div id="receipt-compress-status" class="receipt-compress-status" style="display:none">
+              ⏳ Compressing image…
+            </div>
+          </div>
+
           <div id="group-hint" class="group-hint" style="display:none">
             <span id="group-hint-text"></span>
             <button type="button" class="btn-link" id="apply-group-members-btn">Apply group members →</button>
@@ -416,6 +439,19 @@
       <div class="modal-footer">
         <button class="btn btn-ghost" id="cancel-confirm-btn">Cancel</button>
         <button class="btn btn-danger" id="confirm-ok-btn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== RECEIPT VIEWER MODAL ===== -->
+  <div class="modal-overlay" id="receipt-modal" role="dialog" aria-modal="true">
+    <div class="modal modal-receipt">
+      <div class="modal-header">
+        <h3 class="modal-title">📷 Receipt</h3>
+        <button class="modal-close" id="close-receipt-modal">✕</button>
+      </div>
+      <div class="receipt-viewer-body">
+        <img id="receipt-view-img" src="" alt="Receipt" class="receipt-view-img">
       </div>
     </div>
   </div>
