@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SplitEase – Expense Sharing & Budget Tracker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ===== APP HEADER ===== -->
+  <header class="app-header">
+    <div class="header-brand">
+      <span class="brand-icon">💰</span>
+      <span class="brand-name">SplitEase</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon" id="export-btn" title="Export Data">📤 Export</button>
+      <button class="btn-icon" id="import-btn" title="Import Data">📥 Import</button>
+      <input type="file" id="import-file" accept=".json" style="display:none">
+    </div>
+  </header>
+
+  <!-- ===== TAB NAVIGATION ===== -->
+  <nav class="app-nav">
+    <button class="nav-tab active" data-tab="dashboard">
+      <span class="tab-icon">📊</span>
+      <span class="tab-label">Dashboard</span>
+    </button>
+    <button class="nav-tab" data-tab="expenses">
+      <span class="tab-icon">💸</span>
+      <span class="tab-label">Expenses</span>
+    </button>
+    <button class="nav-tab" data-tab="members">
+      <span class="tab-icon">👥</span>
+      <span class="tab-label">Members</span>
+    </button>
+    <button class="nav-tab" data-tab="balances">
+      <span class="tab-icon">⚖️</span>
+      <span class="tab-label">Balances</span>
+    </button>
+  </nav>
+
+  <!-- ===== MAIN CONTENT ===== -->
+  <main class="app-main">
+
+    <!-- ─── DASHBOARD TAB ─── -->
+    <section class="tab-content active" id="tab-dashboard">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Dashboard</h2>
+          <p class="section-subtitle">Your spending overview</p>
+        </div>
+      </div>
+
+      <!-- Summary stat cards -->
+      <div class="stats-grid">
+        <div class="stat-card stat-primary">
+          <div class="stat-icon-wrap">💰</div>
+          <div class="stat-body">
+            <div class="stat-label">Total Spent</div>
+            <div class="stat-value" id="stat-total">$0.00</div>
+          </div>
+        </div>
+        <div class="stat-card stat-success">
+          <div class="stat-icon-wrap">📅</div>
+          <div class="stat-body">
+            <div class="stat-label">This Month</div>
+            <div class="stat-value" id="stat-month">$0.00</div>
+          </div>
+        </div>
+        <div class="stat-card stat-warning">
+          <div class="stat-icon-wrap">🧾</div>
+          <div class="stat-body">
+            <div class="stat-label">Expenses</div>
+            <div class="stat-value" id="stat-count">0</div>
+          </div>
+        </div>
+        <div class="stat-card stat-danger">
+          <div class="stat-icon-wrap">👥</div>
+          <div class="stat-body">
+            <div class="stat-label">Members</div>
+            <div class="stat-value" id="stat-members">0</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-grid">
+        <div class="card">
+          <h3 class="card-title">Spending by Category</h3>
+          <div class="chart-wrap">
+            <canvas id="category-chart" width="260" height="260"></canvas>
+          </div>
+          <div id="category-legend" class="chart-legend"></div>
+        </div>
+        <div class="card">
+          <h3 class="card-title">Monthly Spending (Last 6 Months)</h3>
+          <div class="chart-wrap chart-wrap-bar">
+            <canvas id="monthly-chart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent transactions -->
+      <div class="card">
+        <div class="card-row">
+          <h3 class="card-title">Recent Transactions</h3>
+          <button class="btn-link" onclick="switchTab('expenses')">View All →</button>
+        </div>
+        <div id="recent-transactions"></div>
+      </div>
+    </section>
+
+    <!-- ─── EXPENSES TAB ─── -->
+    <section class="tab-content" id="tab-expenses">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Expenses</h2>
+          <p class="section-subtitle" id="expense-count-label"></p>
+        </div>
+        <button class="btn btn-primary" id="add-expense-btn">+ Add Expense</button>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="card filter-card">
+        <div class="filter-row">
+          <div class="filter-group">
+            <label class="filter-label">Search</label>
+            <input type="text" id="filter-search" class="input" placeholder="Search…">
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Category</label>
+            <select id="filter-category" class="input">
+              <option value="">All</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">From</label>
+            <input type="date" id="filter-start" class="input">
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">To</label>
+            <input type="date" id="filter-end" class="input">
+          </div>
+          <button class="btn btn-ghost" id="clear-filters-btn">Clear</button>
+        </div>
+      </div>
+
+      <!-- Expense list -->
+      <div id="expense-list"></div>
+    </section>
+
+    <!-- ─── MEMBERS TAB ─── -->
+    <section class="tab-content" id="tab-members">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Members</h2>
+          <p class="section-subtitle">Manage who's in the group</p>
+        </div>
+        <button class="btn btn-primary" id="add-member-btn">+ Add Member</button>
+      </div>
+      <div id="members-grid" class="members-grid"></div>
+    </section>
+
+    <!-- ─── BALANCES TAB ─── -->
+    <section class="tab-content" id="tab-balances">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Balances</h2>
+          <p class="section-subtitle">Who owes whom</p>
+        </div>
+      </div>
+
+      <div id="balance-summary" class="balance-grid"></div>
+
+      <div class="card" id="settlements-card">
+        <h3 class="card-title">💡 Suggested Settlements</h3>
+        <p class="card-subtitle">Minimum transactions to clear all debts</p>
+        <div id="settlements-list"></div>
+      </div>
+    </section>
+
+  </main><!-- /app-main -->
+
+
+  <!-- ===== EXPENSE MODAL ===== -->
+  <div class="modal-overlay" id="expense-modal" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 class="modal-title" id="expense-modal-title">Add Expense</h3>
+        <button class="modal-close" id="close-expense-modal" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="expense-form" autocomplete="off">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Title <span class="req">*</span></label>
+              <input type="text" id="exp-title" class="input" placeholder="e.g. Grocery shopping" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Amount <span class="req">*</span></label>
+              <div class="input-prefix-wrap">
+                <span class="input-prefix">$</span>
+                <input type="number" id="exp-amount" class="input input-prefixed" placeholder="0.00" step="0.01" min="0.01" required>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Paid By <span class="req">*</span></label>
+              <select id="exp-paid-by" class="input" required>
+                <option value="">Select member…</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date <span class="req">*</span></label>
+              <input type="date" id="exp-date" class="input" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              <select id="exp-category" class="input"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Notes</label>
+              <input type="text" id="exp-notes" class="input" placeholder="Optional">
+            </div>
+          </div>
+
+          <!-- Split section -->
+          <div class="split-section">
+            <div class="split-header">
+              <span class="form-label">Split Between</span>
+              <div class="split-toggle">
+                <button type="button" class="split-type-btn active" data-type="equal">⚖️ Equal</button>
+                <button type="button" class="split-type-btn" data-type="custom">✏️ Custom</button>
+              </div>
+            </div>
+            <div id="split-members-list"></div>
+            <div class="split-total-row" id="split-total-row" style="display:none">
+              <span>Split Total:</span>
+              <strong id="split-total-display">$0.00</strong>
+              <span id="split-status" class="split-status"></span>
+            </div>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="cancel-expense-btn">Cancel</button>
+        <button class="btn btn-primary" id="save-expense-btn">Save Expense</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MEMBER MODAL ===== -->
+  <div class="modal-overlay" id="member-modal" role="dialog" aria-modal="true">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h3 class="modal-title">Add Member</h3>
+        <button class="modal-close" id="close-member-modal" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="member-form" autocomplete="off">
+          <div class="form-group">
+            <label class="form-label">Name <span class="req">*</span></label>
+            <input type="text" id="member-name" class="input" placeholder="Enter name" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Color</label>
+            <div id="color-picker" class="color-picker"></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="cancel-member-btn">Cancel</button>
+        <button class="btn btn-primary" id="save-member-btn">Add Member</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CONFIRM MODAL ===== -->
+  <div class="modal-overlay" id="confirm-modal" role="dialog" aria-modal="true">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h3 class="modal-title">Confirm Action</h3>
+        <button class="modal-close" id="close-confirm-modal" aria-label="Close">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-message" class="confirm-text">Are you sure?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="cancel-confirm-btn">Cancel</button>
+        <button class="btn btn-danger" id="confirm-ok-btn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TOAST ===== -->
+  <div id="toast" class="toast" role="alert" aria-live="polite"></div>
+
+  <!-- Chart.js from CDN (free, open-source) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
