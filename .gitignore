@@ -1,0 +1,7 @@
+# Personal data files — never commit these to git (public repo)
+splitease-data.json
+*.json
+
+# OS files
+.DS_Store
+Thumbs.db
