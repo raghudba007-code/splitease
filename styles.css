@@ -699,6 +699,13 @@ select.input { -webkit-appearance: none; appearance: none; background-image: url
 /* ── Info / 4th stat card ── */
 .stat-info .stat-value { color: #0ea5e9; }
 
+/* ── Clickable stat cards ── */
+.stat-card.clickable { cursor: pointer; transition: box-shadow var(--transition), transform var(--transition); position: relative; }
+.stat-card.clickable:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.stat-card.clickable:active { transform: translateY(0); }
+.stat-arrow { font-size: 16px; color: var(--text-light); margin-left: auto; flex-shrink: 0; transition: transform var(--transition); }
+.stat-card.clickable:hover .stat-arrow { transform: translateX(4px); color: var(--text-muted); }
+
 /* ── Header clear button variant ── */
 .btn-icon-warn { background: rgba(239,68,68,.15); }
 .btn-icon-warn:hover { background: rgba(239,68,68,.3); }
@@ -823,6 +830,59 @@ select.input { -webkit-appearance: none; appearance: none; background-image: url
 .insight-danger  .insight-msg { color: #991b1b; }
 .insight-neutral .insight-msg { color: var(--text-muted); }
 .insight-info    .insight-msg { color: #0369a1; }
+
+/* ── Chart filter panel ── */
+.chart-filter-card { margin-bottom: 16px; }
+.chart-filter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.chart-filter-tabs {
+  display: flex;
+  gap: 2px;
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 3px;
+}
+.chart-filter-tab {
+  padding: 5px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: all var(--transition);
+  white-space: nowrap;
+}
+.chart-filter-tab.active { background: var(--surface); color: var(--primary); box-shadow: var(--shadow-sm); font-weight: 600; }
+.chart-filter-tab:hover:not(.active) { color: var(--text); }
+
+.chart-filter-body { margin-top: 14px; }
+.chart-filter-selector { display: flex; flex-direction: column; gap: 4px; }
+.chart-member-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.chart-member-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background var(--transition), border-color var(--transition);
+}
+.chart-member-label:hover { background: var(--primary-light); border-color: var(--primary); }
+.chart-member-label input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--primary); cursor: pointer; }
+.chart-member-label:has(input:checked) { background: var(--primary-light); border-color: var(--primary); color: var(--primary-dark); }
 
 /* ── Chart period toggle ── */
 .chart-header {

@@ -74,19 +74,21 @@
             <div class="stat-value" id="stat-month">$0.00</div>
           </div>
         </div>
-        <div class="stat-card stat-warning">
+        <div class="stat-card stat-warning clickable" onclick="switchTab('expenses')" title="View all expenses">
           <div class="stat-icon-wrap">🧾</div>
           <div class="stat-body">
             <div class="stat-label">Expenses</div>
             <div class="stat-value" id="stat-count">0</div>
           </div>
+          <span class="stat-arrow">→</span>
         </div>
-        <div class="stat-card stat-info">
+        <div class="stat-card stat-info clickable" onclick="switchTab('groups')" title="View all groups">
           <div class="stat-icon-wrap">🏠</div>
           <div class="stat-body">
             <div class="stat-label">Groups</div>
             <div class="stat-value" id="stat-groups">0</div>
           </div>
+          <span class="stat-arrow">→</span>
         </div>
       </div>
 
@@ -96,6 +98,19 @@
         <div id="insights-section" class="insights-row">
           <p class="empty-text">Add expenses to see insights.</p>
         </div>
+      </div>
+
+      <!-- Chart Filter -->
+      <div class="card chart-filter-card">
+        <div class="chart-filter-header">
+          <h3 class="card-title" style="margin-bottom:0">📊 Filter Charts</h3>
+          <div class="chart-filter-tabs">
+            <button class="chart-filter-tab active" data-filter="all">All</button>
+            <button class="chart-filter-tab" data-filter="group">By Group</button>
+            <button class="chart-filter-tab" data-filter="members">By Member(s)</button>
+          </div>
+        </div>
+        <div id="chart-filter-body" class="chart-filter-body"></div>
       </div>
 
       <!-- Charts -->

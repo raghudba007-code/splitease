@@ -37,6 +37,7 @@ const state = {
   filters:  { search: '', category: '', startDate: '', endDate: '', groupId: '' },
   splitType: 'equal',
   chartPeriod: 'monthly',      // 'daily' | 'monthly' | 'yearly'
+  chartFilter: { type: 'all', groupId: '', memberIds: [] },
   editingExpenseId: null,
   editingGroupId:   null,      // null = create mode, string = edit mode
   pendingDeleteId:   null,
@@ -197,6 +198,7 @@ function switchTab(tabId) {
 function renderDashboard() {
   renderStats();
   renderInsights();
+  renderChartFilterUI();
   renderCategoryChart();
   renderSpendingChart(state.chartPeriod);
   renderRecentTransactions();
@@ -345,6 +347,76 @@ function renderInsights() {
     </div>`).join('');
 }
 
+// ── Chart filter helpers ────────────────────────────────────
+
+function getChartExpenses() {
+  const { type, groupId, memberIds } = state.chartFilter;
+  if (type === 'group') {
+    return groupId ? state.expenses.filter(e => e.groupId === groupId) : state.expenses;
+  }
+  if (type === 'members' && memberIds.length > 0) {
+    return state.expenses.filter(e => e.splits.some(s => memberIds.includes(s.memberId)));
+  }
+  return state.expenses;
+}
+
+function renderChartFilterUI() {
+  const { type, groupId, memberIds } = state.chartFilter;
+  const body = document.getElementById('chart-filter-body');
+  if (!body) return;
+
+  // Sync active tab button
+  document.querySelectorAll('.chart-filter-tab').forEach(b =>
+    b.classList.toggle('active', b.dataset.filter === type));
+
+  if (type === 'all') {
+    body.innerHTML = '';
+    return;
+  }
+
+  if (type === 'group') {
+    body.innerHTML = `
+      <div class="chart-filter-selector">
+        <label class="filter-label">Select a group to filter charts:</label>
+        <select id="chart-group-sel" class="input" style="max-width:320px;margin-top:6px">
+          <option value="">— Show all groups —</option>
+          ${state.groups.map(g =>
+            `<option value="${g.id}" ${g.id===groupId?'selected':''}>${esc(g.name)}</option>`
+          ).join('')}
+        </select>
+      </div>`;
+    document.getElementById('chart-group-sel').addEventListener('change', e => {
+      state.chartFilter.groupId = e.target.value;
+      renderCategoryChart();
+      renderSpendingChart(state.chartPeriod);
+    });
+    return;
+  }
+
+  if (type === 'members') {
+    body.innerHTML = `
+      <div class="chart-filter-selector">
+        <label class="filter-label">Select one or more members to filter charts:</label>
+        <div class="chart-member-picker">
+          ${state.members.map(m => `
+            <label class="chart-member-label">
+              <input type="checkbox" class="chart-member-chk" value="${m.id}"
+                     ${memberIds.includes(m.id)?'checked':''}>
+              <span class="member-avatar-sm" style="background:${m.color}">${esc(m.initials)}</span>
+              <span>${esc(m.name)}</span>
+            </label>`).join('')}
+        </div>
+      </div>`;
+    body.querySelectorAll('.chart-member-chk').forEach(cb => {
+      cb.addEventListener('change', () => {
+        state.chartFilter.memberIds = [...body.querySelectorAll('.chart-member-chk:checked')].map(c => c.value);
+        renderCategoryChart();
+        renderSpendingChart(state.chartPeriod);
+      });
+    });
+  }
+}
+
 // ── Category chart ──────────────────────────────────────────
 
 function renderCategoryChart() {
@@ -352,7 +424,7 @@ function renderCategoryChart() {
   if (!canvas || typeof Chart === 'undefined') return;
 
   const totals  = {};
-  state.expenses.forEach(e => { totals[e.category] = (totals[e.category] || 0) + e.amount; });
+  getChartExpenses().forEach(e => { totals[e.category] = (totals[e.category] || 0) + e.amount; });
   const entries = Object.entries(totals).sort((a, b) => b[1] - a[1]);
 
   if (state.charts.category) { state.charts.category.destroy(); state.charts.category = null; }
@@ -396,6 +468,8 @@ function renderSpendingChart(period) {
   const titleEl = document.getElementById('spending-chart-title');
   let labels = [], data = [], barColor = '#6366f1';
 
+  const chartExp = getChartExpenses();
+
   if (period === 'daily') {
     // Last 30 days
     if (titleEl) titleEl.textContent = 'Daily Spending (Last 30 Days)';
@@ -403,7 +477,7 @@ function renderSpendingChart(period) {
       const d    = new Date(); d.setDate(d.getDate() - i);
       const iso  = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
       labels.push(d.toLocaleDateString('en-US', { month:'short', day:'numeric' }));
-      data.push(state.expenses.filter(e => e.date === iso).reduce((s, e) => s + e.amount, 0));
+      data.push(chartExp.filter(e => e.date === iso).reduce((s, e) => s + e.amount, 0));
     }
 
   } else if (period === 'monthly') {
@@ -414,17 +488,17 @@ function renderSpendingChart(period) {
       const d  = new Date(now.getFullYear(), now.getMonth() - i, 1);
       const yr = d.getFullYear(), mo = d.getMonth() + 1;
       labels.push(d.toLocaleDateString('en-US', { month:'short', year:'2-digit' }));
-      data.push(state.expenses
+      data.push(chartExp
         .filter(e => { const [ey,em] = e.date.split('-').map(Number); return ey===yr && em===mo; })
         .reduce((s, e) => s + e.amount, 0));
     }
 
   } else { // yearly
     if (titleEl) titleEl.textContent = 'Yearly Spending';
-    const years = [...new Set(state.expenses.map(e => e.date.slice(0,4)))].sort();
+    const years = [...new Set(chartExp.map(e => e.date.slice(0,4)))].sort();
     if (!years.length) years.push(String(new Date().getFullYear()));
     labels = years;
-    data   = years.map(yr => state.expenses.filter(e => e.date.startsWith(yr)).reduce((s, e) => s + e.amount, 0));
+    data   = years.map(yr => chartExp.filter(e => e.date.startsWith(yr)).reduce((s, e) => s + e.amount, 0));
   }
 
   if (state.charts.spending) { state.charts.spending.destroy(); state.charts.spending = null; }
@@ -1140,6 +1214,16 @@ function closeModal(id) { document.getElementById(id).classList.remove('active')
 function initEvents() {
   // Tabs
   document.querySelectorAll('.nav-tab').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
+
+  // ── Chart filter tabs (group / member / all) ──
+  document.querySelectorAll('.chart-filter-tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.chartFilter = { type: btn.dataset.filter, groupId: '', memberIds: [] };
+      renderChartFilterUI();
+      renderCategoryChart();
+      renderSpendingChart(state.chartPeriod);
+    });
+  });
 
   // ── Chart period toggle ──
   document.querySelectorAll('.period-btn').forEach(btn => {
